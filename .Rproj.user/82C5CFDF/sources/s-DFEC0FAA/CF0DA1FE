@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1555920872284.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "CF0DA1FE",
+    "lastKnownWriteTime" : 1555905961,
+    "last_content_update" : 1556292395084,
+    "path" : "E:/bookdown/spatil_r/08-productivity.Rmd",
+    "project_path" : "08-productivity.Rmd",
+    "properties" : {
+        "cursorPosition" : "9,8",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 11,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

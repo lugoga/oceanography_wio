@@ -1,0 +1,4 @@
+"0","ggplot()+"
+"0","  geom_sf(data = kimbiji, fill = ""grey90"", col = ""grey40"")+"
+"0","  metR::geom_contour2(data = off.kimbiji, "
+"0","               aes(x = lon, y = lat, z=depth), binwidth = 50, col = ""grey"")"

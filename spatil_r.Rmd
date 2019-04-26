@@ -1,0 +1,1963 @@
+--- 
+title: "A glimpse of GIS and Remote Sensing with R"
+author: "Masumbuko Semba"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib]
+biblio-style: apalike
+link-citations: yes
+description: "Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R"
+---
+
+# Prerequisites {-}
+
+This book assumes you have some knowledge of `R`. If you’ve never used R before, or need a refresher, start with our Introduction to R for Geospatial Data lesson.This book also assumes you have some knowledge of geospatial data types and common file formats. If you have never worked with geospatial data before, or need a refresher, start with our Introduction to Geospatial Concepts lesson.
+
+# Sources{-}
+
+1. https://geocompr.robinlovelace.net/adv-map.html#inset-maps
+2. https://mgimond.github.io/Spatial/good-map-making-tips.html
+3. https://r4ds.had.co.nz/graphics-for-communication.html
+
+
+<!--chapter:end:index.Rmd-->
+
+# Introduction to Spatial Analysis {#intro}
+
+
+The goal of this book is to provide an introduction to R for learners working with geospatial data. It is intended as a pre-requisite for the R for Raster and Vector Data  for learners who have no prior experience using R. This book focus on the following topics:
+
++ Working with R in the RStudio GUI
++ Project management and file organization
++ Importing data into R
++ Introduction to R’s core data types and data structures
++ Manipulation of data frames (tabular data) in R
++ Introduction to visualization
++ Writing data to a file.
+
+
+<!--chapter:end:01-intro.Rmd-->
+
+# Raster Data {#raster}
+
+**Questions**
+
++ what is a raster dataset?
++ What tools/functions are used to import raster in R?
++ How to I work with and plot raster data in R
++ How missing or bad data in R are handled with R
+
+**Objectives**
+
++ Describe the fundamental attributes of a raster dataset
++ Explore raster attributtes and metadata
++ Import raster dataset into R workspace
++ visualize raster object 
++ Distinguish single versus multi-bands rasters
+
+## Introduction to Raster data
+
+This this section introduce you to the fundamental principles, packages and metadata/raster attributes that are needed to work with raster data in R. The section discuss some of the core metadata elements that you need to understand to work with rasters in R, including CRS and resolution. Furthermore, missing and bad data values stored in raster will be explored and techniques to handles these elements will be illustrated.
+
+The book use several packages including the **tidyverse** ecosystem [@tidyverse]---with popular packages like the **ggplot2**[@ggplot] and **dplyr** [@dplyr]. The widely used packages for handling raster and vector data like **raster** [@raster], **sp**[@sp], **sf** [@sf] and **rgdal** [@rgdal] make core tools in this book. R needs these packages imported into the environment to use their functions, which can easily done with the `require()` function.
+
+```{r}
+require(sf)
+require(sp)
+require(raster)
+require(tidyverse)
+require(metR)
+```
+
+### GeoTiff
+A popular public domain raster data format is the `GeoTIFF` format. If maximum portability and platform independence is important, this file format may be a good choice.
+
+### Explore the raster attribute
+One of the common raster file is the *GeoTiff** that embed tags of metadata information bout the raster file. This metadata provide the information of the file and hence help us understand the internal structure of the file. This information can be accessed with the `GDALinfo()` function [@rgdal]. Looking at the metadata help us have a glimpse of the file before even the file is imported into the workspace. 
+
+```{r}
+rgdal::GDALinfo("e:/GIS/Tanzania spatial data Bank/Lake_Tanganyika_Bathymetry/Lake_Tanganyika_Bathymetry/grid/tanganyika_dbm (2013_10_23 20_44_28 UTC).tif")
+
+```
+
+### Read a GeoTIFF raster data
+
+Once you have a glimpse of the information of the raster---for example the above information show that the tiff contain elevation values and provide the summary statistics of the elevation with minimum value of 0 and maximum value of 1500 with average of 607. It also show the geographical extent with minimum longitude o 29.05769 and maximul latitude of -8.811174. Furthermore, the metadata tell us that the file is projected with World Geodetic System (WGS84) and the cell has a horizontal resolution of  0.000833 degree. Once we know this information, we can read the file with the `raster` function of **raster** package [@raster]
+
+For this example, we use the bathmetry information of Lake Tanganyika found in Africa. It the world's longest freshwater lake, the second largest largest by volume, and the second deepest lake in the world after lake Baikal in Siberia [@wiki2]. 
+
+```{r}
+lt.bath = raster("e:/GIS/Tanzania spatial data Bank/Lake_Tanganyika_Bathymetry/Lake_Tanganyika_Bathymetry/grid/tanganyika_dbm (2013_10_23 20_44_28 UTC).tif")
+```
+
+We can `summary` function to look at the statistics of the bathmetry of this lake. Looking at the descriptive statistics, we notice that the lake has the depth range from 0 to 1500 m and there is no cell without a value.
+
+```{r}
+lt.bath %>% summary()
+```
+
+There are times when a raster file does not show the summary statistics. When this occurs you can manually calculate the cell values using the `setMinMax()` function.
+```{r}
+lt.bath %>% setMinMax() 
+```
+
+
+### View Raster Coordinate Reference System
+A spatial reference system (SRS) or coordinate referene system (CRS) is a coordinate-based local, regional or global system used to locate geographical entities [@wiki1]. A spatial reference system defines a specific map projection and transofrmation betweeen diffferent spatial reference systems. We can look the embedded CRS in the raster file with teh `crs()` function from **raster** package.
+
+```{r}
+lt.bath %>% crs()
+```
+We notice that the raster file is projected in Word Geodetic System of 1984 (WGS84). In summary the projection `+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 ` tell us as follows:
+
++ `proj=longlat`: the projectionis in longitude and latitude decimal degrees
++ `datum=WGS84`: the datum is WGS84 and it referes to the 0,0 refereence for the coordinate system used in the projection
++ `ellps=WGS84`: the ellipsoidd---how the earth's roundness is calculated for the data is WGS84
+
+### Dealing with missing data in raster
+Raster data often has `NoData` value to represent the absence of data. This is a value assigned to pixels where data is missing or absent. The raster comes with a ract1 contain both the elevation and bathmetry information. But if you want to plot area contour from the coastline offshore, you will need to remove elevation information and this is when you assign the elevation pixel with the `NoData` value.  
+
+The values that is conventionally used to represent missing data varies by ther raster data type. For example, for floating points rasters, the figure `-3.4e+38` is commonly used while for integers a figure `-9999` is common. However, when raster are imported, 
+R assigns these missing cell with `NA`.
+
+```{r}
+tz.bath = raster("e:/GIS/ROADMAP/Etopo 1/Tanzania_etopo1/tanz1_-3432.asc")
+tz.bath %>% summary()
+```
+
+
+## Assign projection and Reproject Raster Data in R
+Sometimes we encounter raster datasets that do not “line up” when plotted or analyzed. Rasters that don’t line up are most often in different Coordinate Reference Systems (CRS). This section explains how to deal with rasters in different, known CRSs. It will walk though reprojecting rasters in R using the `projectRaster()` function in the **raster** package. We can assess the projection of the two raster data we loaded earlier with the `crs()` function from **raster** package. Let's begin with the bathmetry raster of Lake Tanganyika
+
+```{r}
+crs(lt.bath)
+```
+We notice that the bathmetry raster of Lake Tanganyika has defined coordinate reference system---WGS84. let us also check the bathmetry data from the coastal water of Tanzania using the same `crs()` function.
+
+```{r}
+crs(tz.bath)
+```
+
+Unfortunately, the bathmetry raster of coastal water of Tanzania lack the coordinate reference systm---this idicate that the projection is not defined yet. fortunate, raster package has `projectRaster()` function that allows to reproject raster without defined CRS or reproject a raster from one CRS into another. Since the `lt.bath` has the projection, we can use its projection to define the missing coordinate system in `tz.bath` raster file. Because  we need to define a projection of the missing raster,  we simply use the `crs()` function to copy the projection of `lt.bath` into the `tz.bath` as the code block illustrate
+
+```{r}
+
+crs(tz.bath) = crs(lt.bath)
+
+```
+
+We can check the coordinate of the two files if they are correct
+```{r}
+crs(tz.bath); crs(lt.bath)
+```
+
+Since we know that the coastal water of Tanzania lies at zone 37 south, we can simply assign the appropriate projection and then transform the bathmetry from WGS84 to UTM zone 37 south. Since we know the text of the zone, let us define it
+```{r}
+    tzutm = "+proj=utm +zone=37 +south +datum=WGS84 +units=m +no_defs"
+```
+
+We then use the `projectExtent()` function to transform the CRS from WGS84 to UTM Zone 37 south
+
+```{r}
+tz.bath.utm = projectExtent(tz.bath, tzutm)
+
+```
+
+Then check the files projections. Instead of using the `crs()` to assess the type of projection, we use the `projection()` function instead. 
+
+```{r}
+tz.bath %>% projection(asText = F); tz.bath.utm %>% projection(asText = F)
+```
+
+
+## Raster resolution
+Let’s next have a look at the resolution of reprojected `tz.bath.utm` and the `tz.bath` files.
+
+```{r}
+tz.bath.utm %>% res();tz.bath %>% res()
+```
+We notice that the horizontal resolution of projected utm `tz.bath.utm` file is given in meters of 1859.258 by 1860.036. But the the wgs84 `tz.bath` is given in degree of 0.01666667 by 0.01666667. Therefore, depending on how you intend to use the raster in analysis and mapping, you will find yourself resonate between geographical coordianate system (WGS) and Universal Transeverse Mercator (UTM). The former is in degree while the later is in meters. 
+
+
+
+## Raster Calculation
+Often times we want to perform calculations on two or more rasters to create a new output raster. For example, if we are interested in mapping the heights of trees across an entire field site, we might want to calculate the difference between the Digital Surface Model (DSM, tops of trees) and the Digital Terrain Model (DTM, ground level). The resulting dataset is referred to as a Canopy Height Model (CHM) and represents the actual height of trees, buildings, etc. with the influence of ground elevation removed.
+
+
+
+## Multi-bands satellite imagery
+High resolution digital globe multispectral image. Let us explore the image first
+
+```{r}
+rgdal::GDALinfo("e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF")
+```
+
+```{r}
+dg = raster("e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF")
+```
+
+When we explore the raster file, it tell that the class is raster layer and it has eight bands with spatial resolution of 2 meters. 
+
+```{r}
+dg
+```
+
+
+Check for geographical coordinate system
+```{r}
+dg %>% projection()
+```
+
+
+check for the resolution
+```{r}
+res(dg)
+```
+
+### Rater Stacks 
+The multi-bands raster in R are handled easily with the `stack()` function, which bling all bands of multi-band raster 
+
+```{r}
+dg.bands = stack("e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF")
+```
+
+We then preview the attributes embedded in the stacked raster object
+```{r}
+dg.bands
+```
+
+We can view the attributes of each band in the stack with a single output using the `$` operator and call the layer
+```{r}
+dg.bands@layers
+```
+
+```{r}
+plotRGB(dg.bands, r = 3, g = 2, b = 1, scale = 800, stretch = "hist")
+```
+
+```{r}
+b1 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B1.tif")
+b2 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B2.tif")
+b3 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B3.tif")
+b4 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B4.tif")
+b5 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B5.tif")
+b6 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B6.tif")
+b7 = raster("e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B7.tif")
+
+
+
+```
+
+```{r eval=FALSE}
+stack(b1, b2, b3) %>% plotRGB(r = 3, g = 2, b = 1, scale = TRUE)
+```
+
+
+## Manipulate raster
+## Raster time series data
+
+## comparing NDVI from Two different sites 
+
+<!--chapter:end:02-raster.Rmd-->
+
+# Raster Visualization {#rasterv}
+
+## visualize bathmetry with ggplot2
+
+loading the packages needed for this chapter
+
+```{r}
+require(sf)
+require(sp)
+require(raster)
+require(tidyverse)
+require(metR)
+```
+
+Unlike the base plot function that plot raster dataset direct, to visualize raster data in R using the **ggplot2** package, we need to convert the raster dataset into a data frame or tibble. The good thing is that **raster** has a `as.data.frame()` function that convert raster dataset into data frame.
+
+```{r}
+tz.bath.df = tz.bath %>% 
+  raster::as.data.frame(xy = TRUE) %>%
+  as_tibble()
+  
+tz.bath.df %>% glimpse()
+
+```
+
+Using the `glimpse()`, we notice that the file is the data frame with three variables of `x`,`y` and `tangayink_dbm`. we can change these variable names with the `rename()` function and change the depth values from decimal to integer.
+
+```{r}
+  
+tz.bath.df = tz.bath.df %>% 
+  rename(lon = x, lat = y, depth = 3)%>% 
+  mutate(depth = as.integer(depth))
+```
+
+```{r}
+africa = st_read("e:/GIS/Tanzania spatial data Bank/EAF14 Tanzania spatial datasets/africa/Spatial/AdmInfr/afcntry.shp")
+
+tz = africa %>% filter(CNTRY_NAME %in%  c("Tanzania"))
+```
+
+**ggplot2** package developed and maintained by @ggplot use the grammar of graphic to make plot. The nifty thing about this package is its ability to allow adding layers smoothly. For example in figure \@ref(fig:fig31) is contour maps made from ggplot. This map shows the bathmetry just off the Kimbiji. From the contour label, we can see that the maximum depth is ~1200. The code for making this map is shown in the chunk below. Note that although **ggplot2**  has `geom_contour()` function, we used `geom_contour2()` function from **metR** package [@metr]. This is because the **metR** package has added tools that extend the plotting capabilities of **ggplot2** package. For instance, there is no way you can label contour lines with **ggplot2**, but **metR** offers a `geom_text_contour()` that does the work. Furthermore, the `geom_sf()` and `coord_sf()` functions from **sf** package [@sf] extend the mapping capabilities of **ggplot**. This set of `geom`, `stat`, and `coord` are used to visualise simple feature (sf) objects. For simple plots, you will only need `geom_sf()` as it uses `stat_sf()` and `adds coord_sf()` for you. @sf clearly mentioned that `geom_sf()` is an unusual geom because it draw different geometric objects (points, lines and polygon) depending on what simple features are present in the data. 
+
+```{r fig31, fig.cap="Map of Off-Kimbiji showing contour lines. The grey lines are contour at 50 m interval and the black line are contoured at 200 m intervals"}
+
+off.kimbiji = tz.bath.df %>% 
+  filter(lon > 38.5 & lon < 40 & lat > -7.2 & lat < - 6 & depth > -1200& depth < 0  )
+
+ggplot()+
+  geom_sf(data = tz, fill = "grey90", col = "grey40")+
+  geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+    geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+We can also use the combination of `geom_contour_fill()` and `geom_contour_tanaka()` functions from **metR** package to make filled contours that are shaded as shown in figure \@ref(fig:fig32). From the contour label, we can see that the maximum depth is ~1200. However, the filled contours clearly show the 100 m interval that are color coded with lighblue for shallow and darkblue for the deepest part. 
+
+```{r fig32,fig.cap="Map off-Kimbiji showing contour filled contour that are shaded with lines"}
+ggplot()+
+  geom_contour_fill(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), col = "grey", na.fill = TRUE)+
+  geom_contour_tanaka(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth))+
+  geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  geom_sf(data = tz, fill = "grey90", col = "grey40")+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11),
+        legend.position = "none")+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  scale_fill_continuous(name = "Depth", breaks = seq(-1200,0, 200))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+
+## Convert data frame to bathmetric object
+@marmap developed **marmap** package which has tools relevant for working with spatial objects. For instance we are interested to see the topographical profiles along the red transect showin in figure \@ref(fig:fig33). 
+
+```{r fig33,fig.cap="Map off-Kimbiji showing contour filled contour that are shaded with lines", echo=FALSE}
+profile = read_csv("kimbiji_kizimkazi_transect.csv")
+
+ggplot()+
+  geom_contour_fill(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), col = "grey", na.fill = TRUE)+
+  geom_contour_tanaka(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth))+
+  geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  geom_sf(data = tz, fill = "grey90", col = "grey40")+
+  geom_path(data = profile, aes(x = lon, y = lat), size = 2, col = "red")+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11),
+        legend.position = "none")+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  scale_fill_continuous(name = "Depth", breaks = seq(-1200,0, 200))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+
+The process involves two steps, first we need to convert the data frame layer of bathmetry into the class `bathy`, which is the matrix form using the `marmap::as.bath()` function. This function accept data a three-column data frame with longitude(x), latitude(y) and depth(z). Then we need the longitude and latitude positions of the transect, but rather than the *matrix* form it suppose to be in *data.frame* format. The chunk below highlight the process of converting three-column data frame into matrix of bath format. 
+```{r}
+bath.mat = off.kimbiji%>%
+  as.data.frame() %>%
+  marmap::as.bathy()
+
+```
+
+Then we import the file that containing the longitude and latiude information of the transect
+```{r}
+transect = read_csv("kimbiji_kizimkazi_transect.csv")
+```
+
+Once we have imported the transect location information and converted the three-column data frame into the bath format, we can now extract bathmetry information and save them as data frame using the `marmap::get_depth()` function as shown in the code block below and the extracted depth are presented in table \@ref(tab:tab21).
+
+```{r}
+transect.depth = marmap::get.depth(mat = bath.mat, 
+                                   x = transect$lon, 
+                                   y = transect$lat, 
+                                   locator = FALSE)
+```
+
+```{r tab21, echo=FALSE}
+transect.depth %>% 
+  knitr::kable(format = "html", digits = 4, 
+               row.names = FALSE, 
+               align = "c", col.names = c("Longitude", "Latitude", "Depth (m)"),
+               caption = "Depth along the transect extracted from the bathmetry layer at each location")
+```
+
+The topographical profile of the transect in figure \@ref(fig:fig33) is presented in figure \@ref(fig:fig34). You notice that the profile is u-shape with with zero depth at Kimbiji and reach a maximum depth of about 400 meter at about 6.66^o^S and then start ascending as you approach south tip of Unguja Island. 
+
+```{r fig34, fig.cap="Topographic profile along the transec"}
+ggplot(data = transect.depth, aes(x = lat, y = depth))+
+  geom_path(col = "red", size = 1.2)+
+  theme(panel.background = element_rect(fill = "white", colour = "black"),
+        axis.text = element_text(size = 12, colour = 1), 
+        axis.title = element_text(size = 14, colour = 1))+
+  scale_x_continuous(breaks = seq(-6.9, -6.5, length.out = 6), 
+                     labels = metR::LatLabel(seq(-6.9, -6.5, length.out = 6)))+
+  labs(x = NULL, y = "Depth (m)")
+
+```
+
+With an extended functionalites in **cowplot** package, we can combine plofts in a single figure, for instance figure \@ref(fig:fig35) show the filled contour and an inset topographic plot on top. The figure \@ref(fig:fig35) was created using the `ggdraw()` and `draw_plot()` functions from **cowplot** package [@cowplot]
+
+```{r fig35,fig.cap="Map off-Kimbiji showing contour filled contour that are shaded with lines, an inset profile shows the topographical profile along the transect labeld with red"}
+
+
+## map
+map = ggplot()+
+  geom_contour_fill(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), col = "grey", na.fill = TRUE)+
+  geom_contour_tanaka(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth))+
+  geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  geom_sf(data = tz, fill = "grey90", col = "grey40")+
+  geom_path(data = profile, aes(x = lon, y = lat), size = 2, col = "red")+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11),
+        legend.position = "none")+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  scale_fill_continuous(name = "Depth", breaks = seq(-1200,0, 200))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  # annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")
+
+
+## profile
+profile = ggplot(data = transect.depth, aes(x = lat, y = depth))+
+  geom_path(col = "red", size = 1.2)+
+  theme(panel.background = element_rect(fill = "white", colour = 1, size = 1),
+        plot.background = element_rect(fill = NA, colour = NA),
+        panel.grid = element_line(colour = NA),
+        axis.text.x = element_text(size = 10, colour = "black"), 
+        axis.text.y = element_text(size = 10, colour = "black"), 
+        axis.title = element_text(size = 11, colour = 1))+
+  scale_x_continuous(breaks = c(-6.8,-6.5), 
+                     labels = metR::LatLabel(c(-6.8,-6.5)))+
+  labs(x = NULL, y = "")
+
+## combine the bathmetry map and profile plot
+cowplot::ggdraw()+
+  cowplot::draw_plot(plot = map, x = 0, y = 0, width = 1, height = 1, scale = 1)+
+  cowplot::draw_plot(plot = profile, x = 0.27, y = 0.075, width = 0.22, height = 0.3)
+
+```
+
+<!--chapter:end:03-rastervis.Rmd-->
+
+# Vector Data {#vector}
+
+## Introduction
+This chapter provides brief explanations of the fundamental vector model. You will get familiar with the theory behind vector model and the disciplines in which they predominate, before demonstrating its implementation in R.
+
+## Vector Data
+The geographic vector model is based on points located within a coordinate reference system (CRS). Points can represent self-standing features (e.g., the locations where research sample were taken ) or they can be linked together to form complex geometries like lines and polygons. Most point geometries contain only two dimensions with longitude and latitude together with the attribute information. However 3-dimensional points contain an additional  $z$ value--- representing  a thrid dimension---elevation, bathmetry etc.
+
+The standard and widely implemented spatial format for vector data is shapefile. shapefile format is popular geospatial vector data format for geographical information system (GIS) software.It is developed and maintained by Esri. Despite what its name may imply, a “single” shapefile is actually composed of at least three files, and as many as eight. Each file that makes up a “shapefile” has a common filename but different extension type. The list of files that define a “shapefile” are shown in table \@ref(tab:tab41). Note that each file has a specific role in defining a shapefile.
+
+```{r tab41, echo=FALSE}
+shapefile = data.frame(Extension = c(".dbf",".shp",".shx",".aih",
+                                     ".ain",".prj",".sbn",".sbx"),
+                       Description = c("Attribute information",
+                                       "Feature geometry",
+                                       "Feature geometry index",
+                                       "Attribute index",
+                                       "Attribute index",
+                                       "Coordinate system information",
+                                       "Spatial index file",
+                                       "Spatial index file"))
+
+shapefile %>% 
+  select(2,1) %>% 
+  knitr::kable(caption = "Eight Common files that makes a shapefile")%>%
+  kableExtra::column_spec(column = 1, width = "8cm")%>%
+  kableExtra::column_spec(column = 2, width = "4cm")
+```
+
+Until recent, shapefile format was the de facto form ofvector data basis for libraries such as GDAL. R has well-supported classes for storing spatial data and interfacing to the shapefile format, but has so far lacked a complete implementation of *simple features*, making conversions at times convoluted, inefficient or incomplete [@sf]. 
+
+### Simple features
+@sf plainly described *simple features* as hierachical data model that present objects in the real world in computers, with emphasis on the spatial geometry of these objects. Out of 17, there are only seven seven simple feature types described in Table \@ref(tab:tab42) that are commonly used. **sf** can represent common vector geometry types---points, lines, polygons and their respective ‘multi’ versions. **sf** also supports geometry collections, which can contain multiple geometry types in a single object. 
+
+```{r tab42, echo=FALSE}
+simple.features = data.frame(Type = c("Point","Linestring", "Polygon", "Multipoint", "Multilinestring", "Multipolygon", "Geometrycollection"),
+                             Description = c("zero-dimensional geometry containing a single point",
+                                             "sequence of points connected by straight, non-self intersecting line pieces; one-dimensional geometry", 
+                                             "geometry with a positive area (two-dimensional); sequence of points form a closed, non-self intersecting ring; the first ring denotes the exterior ring, zero or more subsequent rings denote holes in this exterior ring",
+                                             "set of points; a MULTIPOINT is simple if no two Points in the MULTIPOINT are equal", "Set of linestrings", "set of polygons", "Set of geometries of any type with exception of geometrycollection"))
+
+simple.features %>% knitr::kable(caption = "Common simple features")%>%
+  kableExtra::column_spec(column = 1, width = "4cm")%>%
+  kableExtra::column_spec(column = 2, width = "12cm")
+```
+
+These core geometry types are fully supported by the R package **sf** [@sf]. **sf** is a package providing a class system for geographic vector data [@geocomputation] supersede, **sp**---methods for spatial data [@sp]. It also provides a consistent command-line interface to GEOS and GDAL, superseding **rgdal**--- for data read/write [@rgdal] and **rgeos**---for spatial operations [@rgeos] packages
+
+
+## Reading vector data
+We will use the **sf** package to work with vector data in R [@sf. Notice that the **rgdal** package automatically loads when **sf** is loaded. The **sf** package has the `st_read()` function that read different types of vector data to sf object. 
+
+```{r}
+require(sf)
+```
+
+### Reading shapefiles
+Shapefile is the widely used vector format in GIS software. The function `st_read()` import any type of shapefile into R. for example the chunk block below show how to import the sampling location that are in shapefile format into simple feature object in R's worksapace. 
+
+```{r}
+
+location = st_read("location.shp")
+location
+
+
+```
+
+When we print the this simple feature it tells us that it has 18 features that span between longitude `r metR::LonLabel(39.45336)` and `r metR::LonLabel(39.55239)` and latitude `r metR::LatLabel(-6.850945)` and `r metR::LatLabel(-6.461915)` with defined  geographical coordinate system of `WGS84`. 
+
+### Reading GPX file
+The `st_read()` function can also read files from GPS devices with the `.gpx` extension. 
+
+```{r}
+track = st_read("Track-180911-063740.gpx", quiet  = TRUE)
+track
+```
+
+We can assess the geographical extent of the simple feature track with the `st_bbox()` function. 
+```{r}
+track %>% st_bbox()
+```
+
+And check the type of geographical coordinate system with `st_crs()` function
+```{r}
+track %>% st_crs()
+```
+
+## Make shapefiles from Tabular data
+Sometimes the geographical information are in tabular form and you need to convert them into simple feature to work with spatial analysis and mapping. The **sf** package provide a `st_as_sf()` function that can make simple feature from the location information in the table. To illustrate this point, let us first load the file that contain the geographical information into the workspace. 
+
+
+```{r}
+location = read_csv("kimbiji_kizimkazi_transect.csv")
+```
+
+Looking the internal structure of the location object we loaded, we find that there are eighteen observations and each observation has the longitude and latitude information.
+```{r}
+location %>% glimpse()
+```
+
+The file contain only the geographical information. We can add the column for station names. `mutate()` function from **dplyr** package add the third column. Because the  station name should be sequentially numbered, the `paste()` function was used to do this. 
+```{r}
+location = location %>% 
+  mutate(name = paste("station", 1:18))
+```
+
+
+Once we know that the dataset contain the longitude and latitude information, we can use these spatial information to make simple feature object using the `st_as_sf()` from **sf** package
+
+```{r}
+location.sf = location %>% 
+  st_as_sf(coords = c("lon", "lat"))
+
+location.sf
+```
+The `coords` parameter is given the `latitude` and `longitude` value columns–values used to locate the points associated with each record. We now have a simple featuere with 18 points. However, the simple feature lack the coordinate system. We can define the coordinate system for the simple feature with the `st_set_crs()` function and parse the epsg code of WGS84.
+
+```{r}
+location.sf = location.sf %>% st_set_crs(4326)
+
+```
+
+Let us check if the `location.sf` is indeed a spatial object
+```{r}
+location.sf
+```
+let us check the class of the simple feature
+```{r}
+location.sf %>% class()
+```
+
+Note the object has four class `sf`, `tbl_df`, `tbl`, and `data_frame`. The data frame contents was also carried over into the attributes table of the simple feature. There was only one attribute, `name`, other than `lon` and `lat` in the tabular data used to create this simple feature. 
+
+Looking on the file clearly the projection is defined to `WGS84`. We can further transform the geographical coordinate system that is degree into the UTM, which is in metric. The function `st_transform()` from **sf** package handle transformation of coordinate system [@sf]. The epsg code for zone 37 south is 32737, which is parsed into the function.
+
+```{r}
+location.utm = location.sf %>% 
+  st_transform(32737)
+
+location.utm
+```
+
+## Export simple feature as shapefile
+Once the simple feature is created, you might be interested to export as shapefile for use with other GIS software like QGIS and Esri ARCGIS. The **sf** package has a `st_write()` function that export simple feature from the workspace into shapefiles in the working directory. The chunk block below demonstrates the export of simple feature object location.sf into the  location.shp in the working directory---denoted with `./`
+
+```{r eval=FALSE}
+location.sf %>% st_write("./location.shp")
+```
+
+
+
+
+
+
+<!--chapter:end:04-vector.Rmd-->
+
+# Making Maps {#graphics}
+
+## Introduction
+Now that you understand vector and raster data model in spatial context, you need to communicate your understanding to others. A satisfying and important aspect of geographic research is communicating the results. To help others quickly build up a good mental model of the spatial data, you will need to invest considerable effort in making your maps as self-explanatory as possible. In this chapter, you’ll learn some of the tools that **ggplot2** provides to make elegand maps and graphics [@ggplot]. 
+
+R has several systems for making graphs, but **ggplot2** is one of the most elegant and most versatile. **ggplot2** implements the *grammar of graphics*, a coherent system for describing and building graphs. The chapter also introduce you to some  extended functionalities from **sf** [@sf], **cowplot** [@cowplot], **ggsn** [@ggsn], **ggsci** [@ggsci], **metR** [@metr], **ggrepel** [@ggrepel], **gganimate** [@gganimate] and **egg** [@egg] packages. Therefore, this chapter focuses on the tools you need to create good graphics. Rather than loading those extensions here, we’ll refer to their functions explicitly, using the `::` notation. This will help make it clear which functions are built into **ggplot2**, and which come from other packages. Ensure you have these packages in your machine, otherwise install them with `install.packages()` if you don’t already have them.
+
+```{r}
+require(tidyverse)
+```
+
+
+Let us make a map showing contour off--Kimbiji located between longitude `r LonLabel(38.5)` and `r LonLabel(40.1)` and latitude `r LatLabel(-7.2)` and `r LatLabel(-6.0). We need to create map of figure \@ref(fig:fig50), which was created with **ggplot2**. But, we will go step by step until we arrive to to an elegant map like figure \@ref(fig:fig50).
+
+
+```{r fig50, fig.cap="Map of Off-Kimbiji showing contour lines. The grey lines are contour at 50 m interval and the black line are contoured at 200 m intervals", echo=FALSE}
+
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+
+### The bathmetry data
+**ggplot2** works with data that are tidy---data frame arranged in such way that observations are in rows and variables are in columns and each value must have its own cell. But, the bathmetry data is from ETOPO1 and came as `.asc`. We first read the file with the `raster::raster()` function.` Once the raster is in the worksapce, we use the `raster::as.data.frame(xy = TRUE)` and supply the `xy = TRUE` argument to convert raster object to data frame. We then tidy the data frame with rename() and mutate() and filter() function
+
+```{r}
+## read the ascii file
+tz.bath = raster::raster("e:/GIS/ROADMAP/Etopo 1/Tanzania_etopo1/tanz1_-3432.asc")
+
+## convert raster to data frame
+tz.bath.df = tz.bath %>% 
+  raster::as.data.frame(xy = TRUE) %>%
+  dplyr::as_tibble()
+
+## rename the variable
+tz.bath.df = tz.bath.df %>% 
+  dplyr::rename(lon = x, lat = y, depth = 3)%>% 
+  dplyr::mutate(depth = as.integer(depth))
+
+## chop the area of interest 
+off.kimbiji = tz.bath.df %>% 
+  dplyr::filter(lon > 38.5 & lon < 40 & 
+           lat > -7.2 & lat < - 6 & 
+           depth > -1200& depth < 0  )
+
+```
+
+The bathmetry file now contain three variables, the `lon`, `lat` and `depth` (Table \@ref(tab:tab51))
+
+```{r tab51}
+off.kimbiji %>%
+  dplyr::sample_n(5) %>%
+  knitr::kable(col.names = c("Longitude", "Latitude", "Depth (meters)"), digits = 3,
+               caption = "The rectangular data frame consist of bathmetry of Kimbiji")%>%
+  kableExtra::column_spec(column = 3, width = "3cm")
+
+
+```
+
+We also need basemap---country boundary layer. We use the st_read() function from **sf** package to read the shapefile boundary layer. Since the layer is for Africa, we use the st_crop() function to chop the area of interest. this is important as it reduce processing time
+
+```{r}
+africa = st_read("e:/GIS/Tanzania spatial data Bank/EAF14 Tanzania spatial datasets/africa/Spatial/AdmInfr/afcntry.shp")
+
+kimbiji = africa %>% st_crop(xmin = 38.0, xmax = 40.5, ymin = -8, ymax = -5.5)
+```
+
+
+## Creating a ggplot
+To plot the contour map, run this code to put lon on the x--axis and lat on the y--axis
+
+```{r fig51, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))
+```
+
+Figure \@ref(fig:fig51) shows bathmetry presented as contour lines. With ggplot2, you can begin a plot with the function `ggplot()`, which create a coordinate system that you can add layers to. The first arguments of `ggplot()` is the dataset to use in plot. So `ggplot(data = off.kimbiji)` creates an empty plot. You complete the graph by adding one or more layers to the `ggplot()`. The `geom_contour()` adds a layer of contour lines. **ggplot2** comes with many *geom* that each add a different type of layer to a plot. Each geom function in **ggplot2** takes a mapping argument, which defines how variable in your dataset are mapped. The `mapping` argument is always paired with `aes()`, and the `x` and `y` arguments of `aes()` specify which variable to map on the `x` and `y` axes. **ggplot*2* looks for the mapped variables in the data argument, in this case the off-kimbiji.
+
+### Label
+Graph need good label, we can improve figure \@ref(fig:fig51) by adding label on the map with the `labs()` function.This example adds a title to figure \@ref(fig:fig52)
+
+```{r fig52, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji")
+```
+
+The labs() function also allows you to add x and y labels as in figure \@ref(fig:fig53)
+
+```{r fig53, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude")
+```
+
+### Annotations
+In addition to `labs()` function that allows to easy place label on map, **ggplot2** has a `geom_text()` function, which allows to add textual label on the plots. Similar to `geom_point()` function that has x and y argument, but the `geom_text()` has additional argument--- `label`. This function is useful especially if you want to place station name on the map or plot. The function requires the data in form of data frame. Therefore we first create a data frame that contains lon, lat and site using the `tibble()` function. The chunk below illustrates the use of `geom_point()` and `geom_text()` as was used to make figure \@ref(fig:fig54)
+
+
+```{r fig54, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+## make data frame of three stations
+stations = tibble(lon = c(39.5, 39.7, 39.5), 
+                      lat = c(-7.1, -6.75, -6.25), 
+                      site = paste("st",101:103, sep = ""))
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude")+
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  geom_text(data = stations, aes(x = lon, y = lat, label = site))
+```
+
+Although the `geom_text()` does the right thing of placing the textual label on plot or maps, it requires some adjustment to make the label on the right position and not on top of a point and **ggplot2** provides those tools. Alternatively, you can use an extended `ggrepel::geom_text_repel()` function from **ggrepel** package [@ggrepel]. geom_text_repel()` function place the label in the right position and requires no addition tweeking as the label in figure \@ref(fig:fig55). 
+
+```{r fig55, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude")+
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site))
+```
+
+Unfortunate, neither `geom_text()` nor `ggrepel::geom_text_repel()` work with label that are not in the data frame. In that situation, you can use the `annoation()` function that does the job. The code below was used to make figure \@ref(fig:fig56) 
+
+```{r fig56, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude")+
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site))+
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")
+```
+
+### Scales
+The other useful functions for making plot that help communicate clearly are scales. Although **ggplot2** does the scaling for you, but sometimes you may need to adjust the mapping from the data values to make a plot or map more appealing (figure \@ref(fig:fig57) ). 
+
+```{r fig57, fig.cap="Contour lines of coastal water off-Kimbiji. adding scales automatic"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+  scale_x_continuous() +
+  scale_y_continuous() 
+
+```
+
+You can adjust the these scales to your preference as in figure \@ref(fig:fig58). Most scales have `breaks` and `labels` as primary arguments. 
+
+```{r fig58, fig.cap="Contour lines of coastal water off-Kimbiji. Adjust scales automatic"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+  scale_x_continuous(breaks = seq(39.35,39.95, length.out = 4)) +
+  scale_y_continuous(breaks = seq(-7.15, -6.15, length.out = 4), 
+                     labels = c(-7.15, -6.81, -6.48, -6.15)) 
+
+```
+
+For inset maps scales are often supressed. This is easily done in the scale by assigning `labels = NULL`. The chunk block below demonstrate the axis label suppresion that was used to make figure \@ref(fig:fig59)
+
+```{r fig59, fig.cap="Contour lines of coastal water off-Kimbiji. Adjust scales and supress the labels"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+  scale_x_continuous(breaks = seq(39.35,39.95, length.out = 4), 
+                     labels = NULL) +
+  scale_y_continuous(breaks = seq(-7.15, -6.15, length.out = 4), 
+                     labels = NULL) 
+
+```
+
+###Themes
+Themes in ggplot2 control the non-data parts of the plot. There quiet number of themes in ggplot2 and extended ones from **ggthemes** package [@ggthemes]. `themes` are widely and can be used to control legend  position with `legend.position` arguments. They also control the display. For more information about the themes I recommend you taking time to read [chapter 28 of the book titled R for data science](https://r4ds.had.co.nz/graphics-for-communication.html) written by Hadley Wickham. 
+
+### Zooming
+Although you may have the region extent of your data, but often times you may wish to adjust the plotted area to your interest. If you want to achieve an equal dize of x- and y-axis, then add the `coord_equal()` function as layer on the `ggplot()`. The code in the chunk below was used to make figure \@ref(fig:fig510)
+
+```{r fig510, fig.cap="Contour lines of coastal water off-Kimbiji. Equal zooming"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+ scale_x_continuous(breaks = seq(39.35,39.95, length.out = 4)) +
+  scale_y_continuous(breaks = seq(-7.15, -6.15, length.out = 4), 
+                     labels = c(-7.15, -6.81, -6.48, -6.15)) +
+  coord_equal()
+
+```
+
+However, close look of figure \@ref(fig:fig59) clearly show that the contour lines do not cross the plot margin. This requires zooming further inside of the ploting area. The function `coord_cartesion()` can adjust the zooming. This function allows you to set the limits of x-axis with `xlim` and y-axis with `ylim` arguments. Figure \@ref(fig:fig511)  was generated using the chunk below, which control the limits of the axis. 
+
+```{r fig511, fig.cap="Contour lines of coastal water off-Kimbiji. Specify zooming"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+ scale_x_continuous(breaks = seq(39.35,39.95, length.out = 4)) +
+  scale_y_continuous(breaks = seq(-7.15, -6.15, length.out = 4), 
+                     labels = c(-7.15, -6.81, -6.48, -6.15)) +
+  coord_cartesian(xlim = c(39.34, 39.95), ylim = c(-7.15, -6.15))
+
+```
+
+Now after the abbove illustration that teach you the key functions **ggplot2** offers for making elegant plots and maps, you can use the following code chunk to make figure \@ref(fig:fig50). I will explain each line in the chunk. As before, you start plotting with **ggplot2** with the `ggplot()` function. The second line of gode add a simple feature with a `geom_sf()` function from **sf** package. When mapping with `geom_sf()` function in **ggplot2** package, you are advised to leave the `ggplot()` function empty. This will allow the geom_sf() to label the axes with the appropriate geographical labelling for longitude and latitude.  Note however, I have instructed the `geom_sf()` to fill the boundary layer with grey of  90 shade and the stroke with black coloou.
+
+```{r}
+
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")
+```
+
+note that **ggplot2** plot the map with default aesthetic settings. The plot background is filled with gray color and without stroke but the grids are white colored. The third line add the contour lines spaced at 50 meter intervals. Instead of using `geom_contour()` from ggplot2, the `geom_contour2()` from **metR** package was used. They both serve the same task. 
+
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")
+```
+
+Like the third line, the fourth line add contour lines, but instead of spacing them into  meters, these are spaced at 200 meters interval and are black in color.
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)
+```
+
+The fifth line add the label on contour spaced at 200 meter interval with `geom_text_contour()` function from **metR** package. Here is where you will find the useful of package like **metR** that extends the **ggplot2**, for which the current version (2.3.1.1) is unable.  
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)
+```
+
+The sixth line zoom the map to only the geographical extent we are interested with using the `coord_sf()` function from **sf** package. We could also use the `coord_cartesin()` to limit the area. 
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))
+ 
+```
+
+We got a glimpse of the map now, let us use theme to make some changes. The background was set to white with `panel.background = element_rect(fill = "white")`, and removed grids with  ` panel.grid = element_line(colour = NA)` and change the font size of the axis label to 11 points with `axis.text = element_text(size = 11)`. The `theme_bw()` just set the border of the plot to black with solid line.  
+
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))
+  
+```
+
+By increasing the font size of axis textual label to 11, the axes are cluttered. adding the scale can improve the labelling. `scale_x_continuous(breaks = seq(39.2, 39.8, .2))` in line 9 force ggplot2 to label the x--axis four letter that are spaced with 0.2 latitude and `scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))` in line 10 label four digits of longitude. 
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))
+  
+```
+
+Because the axes are abbreviated with longitude and latitude symbol, line 11 in the code remove the axes title label. Line 12 to 14 add textual label on the map with the `annotate()` function. 
+
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+
+The last line of our code add the legend on the map using the `scalebar()` function from **ggsn** package [@ggsn]. In a nutshell, making this map using ggplot2 and ancillary extensions used fiften line codes and hundred of arguments. 
+
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")+
+  ggsn::scalebar(location = "bottomleft", x.min = 39.2, x.max = 39.8, 
+                 y.min = -6.98, y.max = -6.35, dist = 15, dist_unit = "km", 
+                 transform = TRUE, model = "WGS84", st.dist = 0.03, st.size = 4,
+                 height = 0.03)
+```
+
+
+## Inset maps
+An inset map is a smaller map rendered within or next to the main map. It could serve many different purposes, including showing the relative position of the study area in regional area. In figure \@ref(fig:fig512) is the map showing the contour interval off-kimbiji, Tanzania. The inset map show the area of Kimbiji in the Western Indian Ocean Region. The chunk below was used to create figure \@ref(fig:fig512). In a nutshell, we assign the study area map as `main.map` and the regional map as `inset.map` and then we used function from the **cowplot** package to combine the two maps. 
+
+```{r fig512, fig.height=5, fig.cap="The main map with the inset map showing the positon of the study areas in the region"}
+
+main.map = ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")+
+  ggsn::scalebar(location = "bottomleft", x.min = 39.2, x.max = 39.8, 
+                 y.min = -6.98, y.max = -6.35, dist = 15, dist_unit = "km", 
+                 transform = TRUE, model = "WGS84", st.dist = 0.03, st.size = 4,
+                 height = 0.03)
+
+world = spData::world
+aoi = data.frame(lon = c(38.5, 40, 40, 38.5, 38.5), 
+                 lat = c(-8, -8, -6, -6, -8))
+
+inset.map = ggplot()+
+  geom_sf(data = world, fill = "grey90", col = 1)+
+  coord_sf(xlim = c(37, 45), ylim = c(-12,-1))+
+  geom_path(data = aoi, aes(x = lon, y = lat), size = 1.2)+
+  theme_bw()+
+  theme(plot.background = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(), panel.grid = element_line(colour = "white")) +
+  labs(x = NULL, y = NULL)
+
+cowplot::ggdraw()+
+  cowplot::draw_plot(plot = main.map, x = 0, y = 0, width = 1, height = 1, scale = 1)+
+  cowplot::draw_plot(plot = inset.map, x = .558, y = .05, width = .3,height = .3)
+```
+
+
+
+## Static Maps
+Static maps are the most common type of visual output from spatial objects. Fixed images for printed outputs, common formats for static maps include .`png` and `.pd`f, for raster and vector outputs, respectively. Initially static maps were the only type of map that R could produce. Things have advanced greatly since `sp` was released (see @sp). Many new techniques for map making have been developed since then. However, a decade later static plotting was still the emphasis of geographic data visualisation in R (Cheshire and Lovelace 2015).
+
+Despite the innovation of interactive mapping in R, static maps are still the foundation of mapping in R. The base `plot()` function is often the fastest way to create static maps from vector and raster spatial objects. Sometimes simplicity and speed are priorities, especially during the development phase of a project, and this is where `plot()` excels. The base R approach is also extensible, with `plot()` offering dozens of arguments. Another low-level approach is the **grid** package, which provides functions for low-level control of graphical outputs. This section, however, focus on how to make static maps with **ggplot2**, emphasizing the important aesthetic and layout options.
+
+
+
+### Map elements
+The good thing to start making maps is with an understanding of the map elements. A static map can be composed of many different map elements. These include `main map body`, `legend`, `title`, `scale indicator`, `orientation indicator`, `inset map` and `source` or `ancillary` information.
+
+
+The easiest place to start when turning an exploratory graphic into an expository graphic is with good labels. You add labels with the labs() function. This example adds a plot title:
+
+
+## Animated maps
+
+## Interactive maps
+
+<!--chapter:end:05-graphics.Rmd-->
+
+# Ocean circulation
+The ocean circulation is composed of a *wind-driven* component and a *thermohaline* component [ref]. The wind driven circulation dominates the surface current, but it is largerly restricted to the topmost few hundred meters [ref]. The circulation deeper in the ocean is largely depends on the slower thermohaline circulation. 
+
+By generating ocean waves, surface winds transfer horizontal momentum from the atmosphere int the ocean. The waves stir the uppermost layer of the ocean, mixing the momentum downward. The mommentum, as reflected in the distribuion surface current shown in figure ...mirrors the pattern of surface winds shown in figure....and fig..., with closed anticyclonic circulation (reffered to as gyres) at subtropical latitude  and clyclonic gyres at subpolar laitudes.
+
+```{r,fig.cap="seasonal mean ocan surface current based on the surface drifter. The prominent feature like the East African Coastal Current, Somali Current and Mozambique current are western boundary current are clearly visible.  The westward south Equatorial current is driven by easterlies winds"}
+
+```
+
+
+<!--chapter:end:06-oceanCirculation.Rmd-->
+
+# Sea Surface Temperature
+
+
+## Annual Mean Sea Surface Temperature
+The global distribution of sea surface temperature is shaped by both radiative and dynamical factors relating to the pattern of seasonally varying, climatological--mean surface wind field over the oceans (Fig wind). Radiative heating is the dominant factor. That incident solar radiatio is so much sronger in the tropics than in the plar regions gives rise to a strong north-south temperature gradient, which dominates the annual-mean field shown in figure \@ref(fig:fig701)a & \@ref(fig:fig701)b
+
+```{r}
+require(sf)
+require(tidyverse)
+```
+
+```{r}
+woa.files = dir("e:/MatlabWorking/WOA/WOA09_zonal_sections_every_5_degrees/", full.names = TRUE)
+```
+
+```{r}
+
+woa.list = list()
+for (i in 1:length(woa.files)){
+  
+  woa.list[[i]] = read_table2(woa.files[i])
+  
+}
+
+```
+
+```{r}
+woa.tb = woa.list %>% bind_rows() %>% rename(Lon = Long)
+
+colnames(woa.tb) = tolower(colnames(woa.tb))
+```
+
+```{r fig701, warning=FALSE,fig.cap="Annual mean sea surface temperature at the surface", fig.align='center'}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = temp), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(0,30,4))+
+  theme_bw() + 
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Temperature(~degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(10, "cm"),
+                               barheight = unit(.4, "cm")))+
+  annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+
+
+```
+
+
+## Anomaly of sea surface temperature
+The effect of winds on the sea surface temperature pattern bcome more cleraly apparent when the zonally averged sea surfae temperature at each latitud is removed from the mean field, leaving just the departure from the zonal-mean, shown in figure \@ref(fig:fig702). Figure \@ref(fig:fig702) clearly show that the eastern side of the oceans are relatively cooler than the western side. We also notice that the upwelling areas are clearly visible in figure \@ref(fig:fig702). These feature are hidden if you rely on the actual value of the sea surface temperature shown in figure \@ref(fig:fig702).
+
+The chunk below highlight the lines of code used to calculate the zonal departure (anomaly) of sea surface temprature from the mean-zonal. The comment in the before the line of code in the chunk briefly explain what each line in the loop does. 
+
+```{r, message=FALSE, warning=FALSE, comment=""}
+
+## create a dummy file that will store the calculated data for each file
+temperature.anomaly = list()
+
+for (i in 1:length(woa.files)){
+  
+      ## read the file
+  temperature.anomaly[[i]] = read_table2(woa.files[i]) %>% 
+    ## pick the surface temperature
+    filter(PRES == 0) %>%
+    ## select the variable of interes
+    select(pressure = PRES, lon = Long, lat = Lat,temp = TEMP) %>% 
+    ## compute the sst anomaly at each zonal field
+    mutate(anomaly = temp-mean(temp))
+  
+}
+
+temperature.anomaly =  temperature.anomaly %>% 
+  ## convert a list fileto a tibble
+  bind_rows()
+
+```
+
+
+
+```{r fig702, fig.cap="Departure of the sea surfae temprature at each location from the zonally averaged field", fig.cap="center", warning=FALSE}
+
+ggplot() +
+  metR::geom_contour_fill(data = temperature.anomaly,
+                          aes(x = lon, y = lat, z = anomaly), na.fill = T, bins = 12) +
+  geom_sf(data =  world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(-6,6,2))+
+  # metR::scale_fill_divergent()+
+  theme_bw() +
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Temperature~anomaly(~degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(10, "cm"),
+                               barheight = unit(.4, "cm")))+
+  annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+```
+
+
+
+```{r, message=FALSE, warning=FALSE, comment=""}
+
+## create a dummy file that will store the calculated data for each file
+temperature.anomaly = list()
+
+for (i in 1:length(woa.files)){
+  
+      ## read the file
+  temperature.anomaly[[i]] = read_table2(woa.files[i]) %>% 
+    ## pick the surface temperature
+    filter(PRES == 0) %>%
+    ## select the variable of interes
+    select(pressure = PRES, lon = Long, lat = Lat,temp = TEMP)%>% 
+    ## pick values that are within the indian ocean region
+    filter(lon > 25 & lon < 135 & lat > -45 & lat < 35) %>%
+    ## compute the sst anomaly at each zonal field
+    mutate(anomaly = temp-mean(temp))
+  
+}
+
+temperature.anomaly.wio =  temperature.anomaly %>% 
+  ## convert a list fileto a tibble
+  bind_rows()
+
+```
+
+```{r fig703, fig.cap="Climatological zonal annual sea surface temperature anomaly in the Indian Ocean"}
+
+
+ggplot() +
+  metR::geom_contour_fill(data = temperature.anomaly.wio,
+                          aes(x = lon, y = lat, z = anomaly), na.fill = T, bins = 120)+
+  metR::geom_contour2(data = temperature.anomaly.wio,
+                          aes(x = lon, y = lat, z = anomaly), na.fill = T)+
+  metR::geom_text_contour(data = temperature.anomaly.wio,
+                          aes(x = lon, y = lat, z = anomaly), na.fill = T, 
+                          check_overlap = TRUE, parse = TRUE)+
+  geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(-4,4,2))+
+  # metR::scale_fill_divergent()+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Temperature~anomaly(~degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL, title = "Climatological Annual Temperature Anomaly")
+```
+
+## Precipitation
+
+```{r}
+rain.files = dir("e:/GIS/ROADMAP/LAYERS DATA/GLOBAL LAYERS/precip_per_3_hrs/", full.names = T, pattern = ".nc")
+
+
+```
+
+Create a vector object of names of the months arranged according to order of files in the directory. This is important because want to ensure the right file is processed. However, the order will be changed and arranged according to the calender when we want to animate or plot the precipation rate in temporal series. 
+
+```{r}
+## 
+months = c("April", "August", "December", "February", "January", "July", 
+           "June", "March", "May", "November", "October", "September")
+```
+
+```{r}
+rain = list()
+
+for (j in 1:length(rain.files)){
+  
+    ## read the file with the raster package
+  rain[[j]] = raster::raster(rain.files[j]) %>% 
+    ## convert raster to data frame
+    raster::as.data.frame(xy = TRUE) %>% 
+    ## change the variable names
+    rename(lon =x , lat = y , rain= 3) %>% 
+    ## change the longitude from 0-360 to -180-180 range
+    mutate(lon = lon-180, month = months[j]) %>% 
+    ## pick the rain value within the AOI
+    filter(lon > 25 & lon < 135 & lat > -45 & lat < 35) %>% 
+    as_tibble()
+}
+
+rain.tb = rain %>% bind_rows()
+```
+
+```{r}
+
+ggplot()+
+  metR::geom_contour_fill(data = rain.tb %>% filter(month == months[1]), 
+                          aes(x = lon, y = lat, z = rain), na.fill = TRUE)+
+ geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(.2,1.5,.2))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Precipitation~rate(~ms^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL, title = paste("Climatological Preciptiation rate for ", months[1]))
+
+
+```
+
+## WInd speed and direction
+```{r}
+wind.files = dir("e:/MatlabWorking/coads/wind_vec/", pattern = ".nc", full.names = TRUE )
+```
+
+```{r}
+## make month vector as files order in the directory
+months = c("April", "August", "December", "February", "January", "July", 
+           "June", "March", "May", "November", "October", "September")
+```
+
+
+```{r}
+u = list()
+v = u
+
+for (n in 1:12){
+  
+  u[[n]] = raster::raster(wind.files[n]) %>%
+    raster::as.data.frame(xy = TRUE) %>% 
+    rename(u = 3) %>% 
+    mutate(month = months[n]) %>% 
+    as_tibble()
+  
+  v[[n]] = raster::raster(wind.files[n+12]) %>%#v begin from 13
+    raster::as.data.frame(xy = TRUE) %>% 
+    rename(v = 3)%>%
+    mutate(month = months[n])%>% 
+    as_tibble()
+}
+
+wind.tb = u %>% bind_rows() %>% 
+  bind_cols(v %>% bind_rows()) %>% 
+  select(month, lon = x, lat = y, u, v) %>%
+  mutate(speed = sqrt(u^2 + v^2))
+
+wind.indian  = wind.tb %>% filter(lon > 25 & lon < 135 & lat > -45 & lat < 35)
+
+```
+
+
+
+```{r fig704, fig.cap="Climatological Wind speed and direction in the Indian Ocean for January"}
+
+ggplot()+
+  metR::geom_contour_fill(data = wind.indian %>% filter(month == "January"), 
+                          aes(x = lon, y = lat, z = speed), na.fill = TRUE)+
+  metR::geom_vector(data = wind.indian %>% filter(month == "January"), 
+                    aes(x = lon, y = lat, dx = u, dy = v ), 
+                    arrow.type = "open", arrow.angle = 30)+
+  metR::scale_mag(max = 15,name = NULL, labels = "15m/s")+
+  geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(0,12,2))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Wind~speed(~ms^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+
+
+```
+
+```{r fig705, fig.cap="Climatological Wind speed and direction in the Indian Ocean for July"}
+ggplot()+
+  metR::geom_contour_fill(data = wind.indian %>% filter(month == "July"), 
+                          aes(x = lon, y = lat, z = speed), na.fill = TRUE)+
+  metR::geom_vector(data = wind.indian %>% filter(month == "July"), 
+                    aes(x = lon, y = lat, dx = u, dy = v ), 
+                    arrow.type = "open", arrow.angle = 30)+
+  metR::scale_mag(max = 15,name = NULL, labels = "15m/s")+
+  geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(0,15,3))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Wind~speed(~ms^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+```
+
+## air temperature
+List of all files of air temperature from the working directory
+```{r}
+air.files = dir("e:/MatlabWorking/coads/airtemp/", full.names = T, pattern = ".nc")
+
+
+```
+
+Create a vector object of names of the months arranged according to order of files in the directory. This is important because want to ensure the right file is processed. However, the order will be changed and arranged according to the calender when we want to animate or plot the precipation rate in temporal series. 
+
+```{r}
+## 
+months = c("April", "August", "December", "February", "January", "July", 
+           "June", "March", "May", "November", "October", "September")
+```
+
+Read the file with `raster::raster(air.files[j])`  and convert it to data frame with `raster::as.data.frame(xy = TRUE). After changing the variable names with ``rename(lon =x , lat = y , temperature= 3)` and create a month variable, the value of air temperature we limited to the study area domain with `filter(lon > 25 & lon < 135 & lat > -45 & lat < 35)`. `air.temp` is list with twelve data frame---each with several rows and columns. To stich the data frame rowside, we used the `air.temp %>% bind_rows()` and assign the product as `air.temp.tb = air.temp`
+
+```{r}
+air.temp = list()
+
+for (j in 1:length(rain.files)){
+  
+    ## read the file with the raster package
+  air.temp[[j]] = raster::raster(air.files[j]) %>% 
+    ## convert raster to data frame
+    raster::as.data.frame(xy = TRUE) %>% 
+    ## change the variable names
+    rename(lon =x , lat = y , temperature= 3) %>% 
+    ## change the longitude from 0-360 to -180-180 range
+    mutate(month = months[j]) %>% 
+    ## pick the rain value within the AOI
+    filter(lon > 25 & lon < 135 & lat > -45 & lat < 35) %>% 
+    as_tibble()
+}
+
+air.temp.tb = air.temp %>% bind_rows()
+```
+
+```{r fig706,  fig.cap="Air temperature of the Indian Ocean for January"}
+
+ggplot()+
+  metR::geom_contour_fill(data = air.temp.tb %>% filter(month == "January"), 
+                          aes(x = lon, y = lat, z = temperature), na.fill = TRUE)+
+ geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(8,30,4))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Precipitation~rate(~ms^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL, title = "Climatological Preciptiation rate for January ")
+
+
+```
+
+
+```{r fig707,  fig.cap="Air temperature of the Indian Ocean for July"}
+
+ggplot()+
+  metR::geom_contour_fill(data = air.temp.tb %>% filter(month == "July"), 
+                          aes(x = lon, y = lat, z = temperature), na.fill = TRUE)+
+ geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(8,30,4))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Air~temperature~(degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+
+
+```
+
+## Zonal anomaly of air temperature
+To calculate the zonal anomaly of air temperature, we first have to calculate the climatological mean air temperature with the code below. 
+
+```{r}
+air.temp.clim = air.temp.tb %>% 
+  group_by(lon,lat) %>% 
+  summarise(temperature = mean(temperature, na.rm = TRUE)) %>% 
+  ungroup()
+
+```
+
+Once we obtain the climatological mean, we can now compute air temperature anomaly at each latitude. First we obtain the unique latitude value using the `Lat = air.temp.clim$lat %>% unique()` and create a dummy files that will contain a data frame of anomalies computed at each latitude. 
+
+```{r}
+
+Lat = air.temp.clim$lat %>% unique()
+
+anomalies = list()
+
+for (k in 1:length(Lat)){
+  anomalies[[k]] = air.temp.clim %>% filter(lat == Lat[k]) %>% 
+    mutate(anomaly = temperature-mean(temperature, na.rm = TRUE))
+  
+}
+anomalies = anomalies %>% bind_rows()
+```
+
+
+```{r fig708, fig.cap="Annual mean departure of air temperature from zonal average"}
+ggplot()+
+  metR::geom_contour_fill(data = anomalies, 
+                          aes(x = lon, y = lat, z = anomaly), na.fill = TRUE)+
+ geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(-3,3,1))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Air~temperature~(degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+```
+
+The zonal average air temperature shown in figure \@ref(fig:fig708) like the zonal average sea surface temperature (Figure \@ref(fig:fig703)), both show small departure from the mean across the area where the EACC path. These is also the area that wind speed is strong during January (Figure \@ref(fig:fig704)) and July (Figure \@ref(fig:fig705)). 
+
+
+<!--chapter:end:07-sst.Rmd-->
+
+# Ocean productivity
+
+
+
+
+<!--chapter:end:08-productivity.Rmd-->
+
+#Physical and chemical properties of the ocean
+
+```{r}
+require(tidyverse)
+require(sf)
+```
+
+```{r}
+woa = read_table2("e:/MatlabWorking/WOA/WOA09_meridional_sections_every_10_degrees/WOA09_lon_50.5.jos")
+```
+
+cross section of temperature at longitude 50.5 within the indian ocean. data from WOA
+
+```{r}
+
+  
+  ggplot(data = woa%>%filter(PRES < 1000 & Lat <= 0), 
+         aes(x = Lat, y = PRES)) +
+  metR::geom_contour_fill(aes(z = TEMP), na.fill = T, bins = 120) + 
+  metR::geom_contour2(aes(z = TEMP), binwidth = 4) +
+  metR::geom_text_contour(aes(z = TEMP), binwidth = 4, parse = T, check_overlap = TRUE) +
+  scale_y_reverse(breaks = seq(0, 1000, 150))+
+  scale_x_reverse(breaks = seq(-90,5,15), labels = metR::LatLabel(seq(-90,5,15))) +
+  scale_fill_gradientn(colours = oce::oceColors9A(120))+
+  theme(axis.text = element_text(size = 12))+
+  labs(x = NULL, y = "Depth (m)")
+```
+
+```{r}
+woa.files = dir("e:/MatlabWorking/WOA/WOA09_zonal_sections_every_5_degrees/", full.names = TRUE)
+```
+
+```{r}
+
+woa.list = list()
+for (i in 1:length(woa.files)){
+  
+  woa.list[[i]] = read_table2(woa.files[i])
+  
+}
+
+```
+
+```{r}
+woa.tb = woa.list %>% bind_rows() %>% rename(Lon = Long)
+
+colnames(woa.tb) = tolower(colnames(woa.tb))
+```
+
+```{r}
+ggplot(data = woa.tb %>% filter(pres == 0), aes(x = lon, y = lat)) +
+  geom_point() +
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+    theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  labs(x = NULL, y = NULL)
+```
+
+## Physical
+```{r}
+world = read_sf("e:/GIS/Tanzania spatial data Bank/World/World Countries and continents/Continents.shp")
+
+
+```
+
+### Temperature
+
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = temp), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(0,30,4))+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Temperature(~degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+```
+
+## Salinity
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = salt), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,180), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme(panel.background = element_rect(fill = NA, colour = 1),
+       legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = "Salinity",
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+
+
+```
+
+## Chemical
+
+### Dissolved oxygen
+
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = o2), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Dissolved~Oxygen(mlL^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+```
+
+### Nitrate
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = no3), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Nitrate~concentration(~mgm^{-3})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+
+```
+
+
+### Phosphate
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = po4), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Phosphate~concentration(~mgm^{-3})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+
+```
+
+
+
+### Silica
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = sio3), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme_bw()+
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Silca~concentration(mgm^{-3})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+
+```
+
+cross-section of temperature at longitude `r LonLabel(55.5)` in the Indian Ocean. The diagram show several water masses formed at diffrent latitudes. The data was obtained from WOA09
+
+```{r}
+## cross section of temperature at longitude 45.5 in the indian ocean
+
+woa.tb %>% filter(lon == 55.5 & lat > -55 & lat < 25 & pres < 1000) %>% 
+  ggplot()+
+  metR::geom_contour_fill(aes(x = lat, y = pres, z = temp), na.fill = TRUE)+
+  metR::geom_contour2(aes(x = lat, y = pres, z = temp), na.fill = TRUE)+
+  metR::geom_text_contour(aes(x = lat, y = pres, z = temp), skip = 1, rotate = FALSE, check_overlap = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9B(120)) +
+  scale_y_reverse(breaks = seq(0,1000,200))+
+  scale_x_continuous(position = "top",
+                     breaks = seq(-70,30,10),labels = metR::LatLabel(seq(-70,30,10)))+
+ theme(panel.background = element_rect(fill = NA, colour = 1),
+       panel.border = element_rect(colour = 1, fill = NA),
+       legend.position = "none",
+       axis.text = element_text(size = 11, colour = "black"),
+       legend.text = element_text(size = 10),
+       legend.title = element_text(size = 12))+  
+  labs(x = NULL, y = "Pressure [dba]")+
+  coord_cartesian(xlim = c(-48, 14), ylim = c(0,900), clip = "on", expand = FALSE)
+```
+
+
+<!--chapter:end:09-physicalChemical.Rmd-->
+
+`r if (knitr::is_html_output()) '
+# References {-}
+'`
+
+<!--chapter:end:10-references.Rmd-->
+
+# Index
+
+## R
+
+## Rmarkdown
+
+## Bookdown
+
+## Pandoc
+
+
+
+
+## WOA for Nyamisi manuscript
+I processed the WOA atlas data to capture chemical properties of profiles within the Mafia kimbiji area.  Here is the code for reading the file
+```{r}
+aa = read_table2("e:/MatlabWorking/WOA/WOA09_meridional_sections_every_10_degrees/WOA09_lon_40.5.jos")
+
+ab = aa %>% filter(Lat > -8 & Lat < -6) %>% 
+  select(-c(Section, STATION)) %>% 
+  gather(key = "variables", value = "value", 4:9) %>% 
+  rename(lat = Lat, lon = Long, pressure = PRES)
+
+ab$lat = as.factor(ab$lat)
+```
+
+The figure below show the profiles at latitude 6.5 and 7.5
+```{r}
+ggplot(data = ab %>% filter(variables %in% c("NO3", "PO4", "SIO3")), aes(x = value, y = pressure, col = lat))+
+  geom_path(show.legend = TRUE)+
+  scale_y_reverse()+
+  scale_x_continuous(position = "top")+
+  cowplot::theme_cowplot()+
+  facet_wrap(~variables, scales = "free", nrow = 1)
+```
+
+## Producing Maps programatically
+Current solutions for creating maps usually involves GIS software such as ArcGIS and QGIS, which allows to visually prepare a map in the same approach as one would prepare a poster or a doument layout. On the ohter hand, R, a free and open source software development environment (IDE) thaat is used tfor computing statical data and producing graphics in a programming language, has developed advanced spatial capabilies over the years, and can be used to draw maps programatically. 
+
+R is a powerful and flexible tool. R can be used from calculating data sets and present the result of the analysis in plots or maps. R is also free and accessible to everyone. R is an interactive and scripting language that allows the user to write out codes in which it will execute the commands specified. 
+
+```{r}
+stations = data.frame(lon = c(40.2, 43.8), lat = c(-6.1, -7.3)) %>% 
+  st_as_sf(coords = c("lon", "lat")) %>% st_set_crs(4326)
+
+ggplot() +
+  geom_sf(data = stations, size = 5)+
+  coord_sf(xlim = c(40, 44), ylim = c(-6.0, -7.4))+
+  ggspatial::annotation_scale(location = "bl", width_hint = 0.4) +
+  ggspatial::annotation_north_arrow(location = "bt", which_north = "true",
+        pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"))
+
+
+# +
+#     annotation_scale() +
+
+```
+
+
+
+<!--chapter:end:20-weka.Rmd-->
+

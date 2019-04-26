@@ -1,0 +1,220 @@
+# Raster Visualization {#rasterv}
+
+## visualize bathmetry with ggplot2
+
+loading the packages needed for this chapter
+
+```{r}
+require(sf)
+require(sp)
+require(raster)
+require(tidyverse)
+require(metR)
+```
+
+Unlike the base plot function that plot raster dataset direct, to visualize raster data in R using the **ggplot2** package, we need to convert the raster dataset into a data frame or tibble. The good thing is that **raster** has a `as.data.frame()` function that convert raster dataset into data frame.
+
+```{r}
+tz.bath.df = tz.bath %>% 
+  raster::as.data.frame(xy = TRUE) %>%
+  as_tibble()
+  
+tz.bath.df %>% glimpse()
+
+```
+
+Using the `glimpse()`, we notice that the file is the data frame with three variables of `x`,`y` and `tangayink_dbm`. we can change these variable names with the `rename()` function and change the depth values from decimal to integer.
+
+```{r}
+  
+tz.bath.df = tz.bath.df %>% 
+  rename(lon = x, lat = y, depth = 3)%>% 
+  mutate(depth = as.integer(depth))
+```
+
+```{r}
+africa = st_read("e:/GIS/Tanzania spatial data Bank/EAF14 Tanzania spatial datasets/africa/Spatial/AdmInfr/afcntry.shp")
+
+tz = africa %>% filter(CNTRY_NAME %in%  c("Tanzania"))
+```
+
+**ggplot2** package developed and maintained by @ggplot use the grammar of graphic to make plot. The nifty thing about this package is its ability to allow adding layers smoothly. For example in figure \@ref(fig:fig31) is contour maps made from ggplot. This map shows the bathmetry just off the Kimbiji. From the contour label, we can see that the maximum depth is ~1200. The code for making this map is shown in the chunk below. Note that although **ggplot2**  has `geom_contour()` function, we used `geom_contour2()` function from **metR** package [@metr]. This is because the **metR** package has added tools that extend the plotting capabilities of **ggplot2** package. For instance, there is no way you can label contour lines with **ggplot2**, but **metR** offers a `geom_text_contour()` that does the work. Furthermore, the `geom_sf()` and `coord_sf()` functions from **sf** package [@sf] extend the mapping capabilities of **ggplot**. This set of `geom`, `stat`, and `coord` are used to visualise simple feature (sf) objects. For simple plots, you will only need `geom_sf()` as it uses `stat_sf()` and `adds coord_sf()` for you. @sf clearly mentioned that `geom_sf()` is an unusual geom because it draw different geometric objects (points, lines and polygon) depending on what simple features are present in the data. 
+
+```{r fig31, fig.cap="Map of Off-Kimbiji showing contour lines. The grey lines are contour at 50 m interval and the black line are contoured at 200 m intervals"}
+
+off.kimbiji = tz.bath.df %>% 
+  filter(lon > 38.5 & lon < 40 & lat > -7.2 & lat < - 6 & depth > -1200& depth < 0  )
+
+ggplot()+
+  geom_sf(data = tz, fill = "grey90", col = "grey40")+
+  geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+    geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+We can also use the combination of `geom_contour_fill()` and `geom_contour_tanaka()` functions from **metR** package to make filled contours that are shaded as shown in figure \@ref(fig:fig32). From the contour label, we can see that the maximum depth is ~1200. However, the filled contours clearly show the 100 m interval that are color coded with lighblue for shallow and darkblue for the deepest part. 
+
+```{r fig32,fig.cap="Map off-Kimbiji showing contour filled contour that are shaded with lines"}
+ggplot()+
+  geom_contour_fill(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), col = "grey", na.fill = TRUE)+
+  geom_contour_tanaka(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth))+
+  geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  geom_sf(data = tz, fill = "grey90", col = "grey40")+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11),
+        legend.position = "none")+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  scale_fill_continuous(name = "Depth", breaks = seq(-1200,0, 200))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+
+## Convert data frame to bathmetric object
+@marmap developed **marmap** package which has tools relevant for working with spatial objects. For instance we are interested to see the topographical profiles along the red transect showin in figure \@ref(fig:fig33). 
+
+```{r fig33,fig.cap="Map off-Kimbiji showing contour filled contour that are shaded with lines", echo=FALSE}
+profile = read_csv("kimbiji_kizimkazi_transect.csv")
+
+ggplot()+
+  geom_contour_fill(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), col = "grey", na.fill = TRUE)+
+  geom_contour_tanaka(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth))+
+  geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  geom_sf(data = tz, fill = "grey90", col = "grey40")+
+  geom_path(data = profile, aes(x = lon, y = lat), size = 2, col = "red")+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11),
+        legend.position = "none")+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  scale_fill_continuous(name = "Depth", breaks = seq(-1200,0, 200))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+
+The process involves two steps, first we need to convert the data frame layer of bathmetry into the class `bathy`, which is the matrix form using the `marmap::as.bath()` function. This function accept data a three-column data frame with longitude(x), latitude(y) and depth(z). Then we need the longitude and latitude positions of the transect, but rather than the *matrix* form it suppose to be in *data.frame* format. The chunk below highlight the process of converting three-column data frame into matrix of bath format. 
+```{r}
+bath.mat = off.kimbiji%>%
+  as.data.frame() %>%
+  marmap::as.bathy()
+
+```
+
+Then we import the file that containing the longitude and latiude information of the transect
+```{r}
+transect = read_csv("kimbiji_kizimkazi_transect.csv")
+```
+
+Once we have imported the transect location information and converted the three-column data frame into the bath format, we can now extract bathmetry information and save them as data frame using the `marmap::get_depth()` function as shown in the code block below and the extracted depth are presented in table \@ref(tab:tab21).
+
+```{r}
+transect.depth = marmap::get.depth(mat = bath.mat, 
+                                   x = transect$lon, 
+                                   y = transect$lat, 
+                                   locator = FALSE)
+```
+
+```{r tab21, echo=FALSE}
+transect.depth %>% 
+  knitr::kable(format = "html", digits = 4, 
+               row.names = FALSE, 
+               align = "c", col.names = c("Longitude", "Latitude", "Depth (m)"),
+               caption = "Depth along the transect extracted from the bathmetry layer at each location")
+```
+
+The topographical profile of the transect in figure \@ref(fig:fig33) is presented in figure \@ref(fig:fig34). You notice that the profile is u-shape with with zero depth at Kimbiji and reach a maximum depth of about 400 meter at about 6.66^o^S and then start ascending as you approach south tip of Unguja Island. 
+
+```{r fig34, fig.cap="Topographic profile along the transec"}
+ggplot(data = transect.depth, aes(x = lat, y = depth))+
+  geom_path(col = "red", size = 1.2)+
+  theme(panel.background = element_rect(fill = "white", colour = "black"),
+        axis.text = element_text(size = 12, colour = 1), 
+        axis.title = element_text(size = 14, colour = 1))+
+  scale_x_continuous(breaks = seq(-6.9, -6.5, length.out = 6), 
+                     labels = metR::LatLabel(seq(-6.9, -6.5, length.out = 6)))+
+  labs(x = NULL, y = "Depth (m)")
+
+```
+
+With an extended functionalites in **cowplot** package, we can combine plofts in a single figure, for instance figure \@ref(fig:fig35) show the filled contour and an inset topographic plot on top. The figure \@ref(fig:fig35) was created using the `ggdraw()` and `draw_plot()` functions from **cowplot** package [@cowplot]
+
+```{r fig35,fig.cap="Map off-Kimbiji showing contour filled contour that are shaded with lines, an inset profile shows the topographical profile along the transect labeld with red"}
+
+
+## map
+map = ggplot()+
+  geom_contour_fill(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), col = "grey", na.fill = TRUE)+
+  geom_contour_tanaka(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth))+
+  geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  geom_sf(data = tz, fill = "grey90", col = "grey40")+
+  geom_path(data = profile, aes(x = lon, y = lat), size = 2, col = "red")+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11),
+        legend.position = "none")+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  scale_fill_continuous(name = "Depth", breaks = seq(-1200,0, 200))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  # annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")
+
+
+## profile
+profile = ggplot(data = transect.depth, aes(x = lat, y = depth))+
+  geom_path(col = "red", size = 1.2)+
+  theme(panel.background = element_rect(fill = "white", colour = 1, size = 1),
+        plot.background = element_rect(fill = NA, colour = NA),
+        panel.grid = element_line(colour = NA),
+        axis.text.x = element_text(size = 10, colour = "black"), 
+        axis.text.y = element_text(size = 10, colour = "black"), 
+        axis.title = element_text(size = 11, colour = 1))+
+  scale_x_continuous(breaks = c(-6.8,-6.5), 
+                     labels = metR::LatLabel(c(-6.8,-6.5)))+
+  labs(x = NULL, y = "")
+
+## combine the bathmetry map and profile plot
+cowplot::ggdraw()+
+  cowplot::draw_plot(plot = map, x = 0, y = 0, width = 1, height = 1, scale = 1)+
+  cowplot::draw_plot(plot = profile, x = 0.27, y = 0.075, width = 0.22, height = 0.3)
+
+```

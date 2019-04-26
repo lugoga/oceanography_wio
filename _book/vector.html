@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Chapter 4 Vector Data | A glimpse of GIS and Remote Sensing with R</title>
+  <meta name="description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R">
+  <meta name="generator" content="bookdown  and GitBook 2.6.7">
+
+  <meta property="og:title" content="Chapter 4 Vector Data | A glimpse of GIS and Remote Sensing with R" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 4 Vector Data | A glimpse of GIS and Remote Sensing with R" />
+  
+  <meta name="twitter:description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R" />
+  
+
+<meta name="author" content="Masumbuko Semba">
+
+
+<meta name="date" content="2019-04-21">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<link rel="prev" href="rasterv.html">
+<link rel="next" href="graphics.html">
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+
+
+
+
+
+
+
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+
+
+<style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">A glimpse of GIS and Remote Sensing with R</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Prerequisites</a></li>
+<li class="chapter" data-level="" data-path="sources.html"><a href="sources.html"><i class="fa fa-check"></i>Sources</a></li>
+<li class="chapter" data-level="1" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>1</b> Introduction to Spatial Analysis</a></li>
+<li class="chapter" data-level="2" data-path="raster.html"><a href="raster.html"><i class="fa fa-check"></i><b>2</b> Raster Data</a><ul>
+<li class="chapter" data-level="2.1" data-path="raster.html"><a href="raster.html#introduction-to-raster-data"><i class="fa fa-check"></i><b>2.1</b> Introduction to Raster data</a><ul>
+<li class="chapter" data-level="2.1.1" data-path="raster.html"><a href="raster.html#geotiff"><i class="fa fa-check"></i><b>2.1.1</b> GeoTiff</a></li>
+<li class="chapter" data-level="2.1.2" data-path="raster.html"><a href="raster.html#explore-the-raster-attribute"><i class="fa fa-check"></i><b>2.1.2</b> Explore the raster attribute</a></li>
+<li class="chapter" data-level="2.1.3" data-path="raster.html"><a href="raster.html#read-a-geotiff-raster-data"><i class="fa fa-check"></i><b>2.1.3</b> Read a GeoTIFF raster data</a></li>
+<li class="chapter" data-level="2.1.4" data-path="raster.html"><a href="raster.html#view-raster-coordinate-reference-system"><i class="fa fa-check"></i><b>2.1.4</b> View Raster Coordinate Reference System</a></li>
+<li class="chapter" data-level="2.1.5" data-path="raster.html"><a href="raster.html#dealing-with-missing-data-in-raster"><i class="fa fa-check"></i><b>2.1.5</b> Dealing with missing data in raster</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="raster.html"><a href="raster.html#assign-projection-and-reproject-raster-data-in-r"><i class="fa fa-check"></i><b>2.2</b> Assign projection and Reproject Raster Data in R</a></li>
+<li class="chapter" data-level="2.3" data-path="raster.html"><a href="raster.html#raster-resolution"><i class="fa fa-check"></i><b>2.3</b> Raster resolution</a></li>
+<li class="chapter" data-level="2.4" data-path="raster.html"><a href="raster.html#raster-calculation"><i class="fa fa-check"></i><b>2.4</b> Raster Calculation</a></li>
+<li class="chapter" data-level="2.5" data-path="raster.html"><a href="raster.html#multi-bands-satellite-imagery"><i class="fa fa-check"></i><b>2.5</b> Multi-bands satellite imagery</a><ul>
+<li class="chapter" data-level="2.5.1" data-path="raster.html"><a href="raster.html#rater-stacks"><i class="fa fa-check"></i><b>2.5.1</b> Rater Stacks</a></li>
+</ul></li>
+<li class="chapter" data-level="2.6" data-path="raster.html"><a href="raster.html#manipulate-raster"><i class="fa fa-check"></i><b>2.6</b> Manipulate raster</a></li>
+<li class="chapter" data-level="2.7" data-path="raster.html"><a href="raster.html#raster-time-series-data"><i class="fa fa-check"></i><b>2.7</b> Raster time series data</a></li>
+<li class="chapter" data-level="2.8" data-path="raster.html"><a href="raster.html#comparing-ndvi-from-two-different-sites"><i class="fa fa-check"></i><b>2.8</b> comparing NDVI from Two different sites</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="rasterv.html"><a href="rasterv.html"><i class="fa fa-check"></i><b>3</b> Raster Visualization</a><ul>
+<li class="chapter" data-level="3.1" data-path="rasterv.html"><a href="rasterv.html#visualize-bathmetry-with-ggplot2"><i class="fa fa-check"></i><b>3.1</b> visualize bathmetry with ggplot2</a></li>
+<li class="chapter" data-level="3.2" data-path="rasterv.html"><a href="rasterv.html#convert-data-frame-to-bathmetric-object"><i class="fa fa-check"></i><b>3.2</b> Convert data frame to bathmetric object</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="vector.html"><a href="vector.html"><i class="fa fa-check"></i><b>4</b> Vector Data</a><ul>
+<li class="chapter" data-level="4.1" data-path="vector.html"><a href="vector.html#introduction"><i class="fa fa-check"></i><b>4.1</b> Introduction</a></li>
+<li class="chapter" data-level="4.2" data-path="vector.html"><a href="vector.html#vector-data"><i class="fa fa-check"></i><b>4.2</b> Vector Data</a><ul>
+<li class="chapter" data-level="4.2.1" data-path="vector.html"><a href="vector.html#simple-features"><i class="fa fa-check"></i><b>4.2.1</b> Simple features</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="vector.html"><a href="vector.html#reading-vector-data"><i class="fa fa-check"></i><b>4.3</b> Reading vector data</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="vector.html"><a href="vector.html#reading-shapefiles"><i class="fa fa-check"></i><b>4.3.1</b> Reading shapefiles</a></li>
+<li class="chapter" data-level="4.3.2" data-path="vector.html"><a href="vector.html#reading-gpx-file"><i class="fa fa-check"></i><b>4.3.2</b> Reading GPX file</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="vector.html"><a href="vector.html#make-shapefiles-from-tabular-data"><i class="fa fa-check"></i><b>4.4</b> Make shapefiles from Tabular data</a></li>
+<li class="chapter" data-level="4.5" data-path="vector.html"><a href="vector.html#export-simple-feature-as-shapefile"><i class="fa fa-check"></i><b>4.5</b> Export simple feature as shapefile</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="graphics.html"><a href="graphics.html"><i class="fa fa-check"></i><b>5</b> Making Maps</a><ul>
+<li class="chapter" data-level="5.1" data-path="graphics.html"><a href="graphics.html#introduction-1"><i class="fa fa-check"></i><b>5.1</b> Introduction</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="graphics.html"><a href="graphics.html#the-bathmetry-data"><i class="fa fa-check"></i><b>5.1.1</b> The bathmetry data</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="graphics.html"><a href="graphics.html#creating-a-ggplot"><i class="fa fa-check"></i><b>5.2</b> Creating a ggplot</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="graphics.html"><a href="graphics.html#label"><i class="fa fa-check"></i><b>5.2.1</b> Label</a></li>
+<li class="chapter" data-level="5.2.2" data-path="graphics.html"><a href="graphics.html#annotations"><i class="fa fa-check"></i><b>5.2.2</b> Annotations</a></li>
+<li class="chapter" data-level="5.2.3" data-path="graphics.html"><a href="graphics.html#scales"><i class="fa fa-check"></i><b>5.2.3</b> Scales</a></li>
+<li class="chapter" data-level="5.2.4" data-path="graphics.html"><a href="graphics.html#zooming"><i class="fa fa-check"></i><b>5.2.4</b> Zooming</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="graphics.html"><a href="graphics.html#inset-maps"><i class="fa fa-check"></i><b>5.3</b> Inset maps</a></li>
+<li class="chapter" data-level="5.4" data-path="graphics.html"><a href="graphics.html#static-maps"><i class="fa fa-check"></i><b>5.4</b> Static Maps</a><ul>
+<li class="chapter" data-level="5.4.1" data-path="graphics.html"><a href="graphics.html#map-elements"><i class="fa fa-check"></i><b>5.4.1</b> Map elements</a></li>
+</ul></li>
+<li class="chapter" data-level="5.5" data-path="graphics.html"><a href="graphics.html#animated-maps"><i class="fa fa-check"></i><b>5.5</b> Animated maps</a></li>
+<li class="chapter" data-level="5.6" data-path="graphics.html"><a href="graphics.html#interactive-maps"><i class="fa fa-check"></i><b>5.6</b> Interactive maps</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="final-words.html"><a href="final-words.html"><i class="fa fa-check"></i><b>6</b> Final Words</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A glimpse of GIS and Remote Sensing with R</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="vector" class="section level1">
+<h1><span class="header-section-number">Chapter 4</span> Vector Data</h1>
+<div id="introduction" class="section level2">
+<h2><span class="header-section-number">4.1</span> Introduction</h2>
+<p>This chapter provides brief explanations of the fundamental vector model. You will get familiar with the theory behind vector model and the disciplines in which they predominate, before demonstrating its implementation in R.</p>
+</div>
+<div id="vector-data" class="section level2">
+<h2><span class="header-section-number">4.2</span> Vector Data</h2>
+<p>The geographic vector model is based on points located within a coordinate reference system (CRS). Points can represent self-standing features (e.g., the locations where research sample were taken ) or they can be linked together to form complex geometries like lines and polygons. Most point geometries contain only two dimensions with longitude and latitude together with the attribute information. However 3-dimensional points contain an additional <span class="math inline">\(z\)</span> value— representing a thrid dimension—elevation, bathmetry etc.</p>
+<p>The standard and widely implemented spatial format for vector data is shapefile. shapefile format is popular geospatial vector data format for geographical information system (GIS) software.It is developed and maintained by Esri. Despite what its name may imply, a “single” shapefile is actually composed of at least three files, and as many as eight. Each file that makes up a “shapefile” has a common filename but different extension type. The list of files that define a “shapefile” are shown in table <a href="vector.html#tab:tab41">4.1</a>. Note that each file has a specific role in defining a shapefile.</p>
+<table>
+<caption>
+<span id="tab:tab41">Table 4.1: </span>Eight Common files that makes a shapefile
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Description
+</th>
+<th style="text-align:left;">
+Extension
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Attribute information
+</td>
+<td style="text-align:left;width: 4cm; ">
+.dbf
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Feature geometry
+</td>
+<td style="text-align:left;width: 4cm; ">
+.shp
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Feature geometry index
+</td>
+<td style="text-align:left;width: 4cm; ">
+.shx
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Attribute index
+</td>
+<td style="text-align:left;width: 4cm; ">
+.aih
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Attribute index
+</td>
+<td style="text-align:left;width: 4cm; ">
+.ain
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Coordinate system information
+</td>
+<td style="text-align:left;width: 4cm; ">
+.prj
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Spatial index file
+</td>
+<td style="text-align:left;width: 4cm; ">
+.sbn
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 8cm; ">
+Spatial index file
+</td>
+<td style="text-align:left;width: 4cm; ">
+.sbx
+</td>
+</tr>
+</tbody>
+</table>
+<p>Until recent, shapefile format was the de facto form ofvector data basis for libraries such as GDAL. R has well-supported classes for storing spatial data and interfacing to the shapefile format, but has so far lacked a complete implementation of <em>simple features</em>, making conversions at times convoluted, inefficient or incomplete <span class="citation">(Pebesma <a href="#ref-sf">2018</a>)</span>.</p>
+<div id="simple-features" class="section level3">
+<h3><span class="header-section-number">4.2.1</span> Simple features</h3>
+<p><span class="citation">Pebesma (<a href="#ref-sf">2018</a>)</span> plainly described <em>simple features</em> as hierachical data model that present objects in the real world in computers, with emphasis on the spatial geometry of these objects. Out of 17, there are only seven seven simple feature types described in Table <a href="vector.html#tab:tab42">4.2</a> that are commonly used. <strong>sf</strong> can represent common vector geometry types—points, lines, polygons and their respective ‘multi’ versions. <strong>sf</strong> also supports geometry collections, which can contain multiple geometry types in a single object.</p>
+<table>
+<caption>
+<span id="tab:tab42">Table 4.2: </span>Common simple features
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Type
+</th>
+<th style="text-align:left;">
+Description
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Point
+</td>
+<td style="text-align:left;width: 12cm; ">
+zero-dimensional geometry containing a single point
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Linestring
+</td>
+<td style="text-align:left;width: 12cm; ">
+sequence of points connected by straight, non-self intersecting line pieces; one-dimensional geometry
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Polygon
+</td>
+<td style="text-align:left;width: 12cm; ">
+geometry with a positive area (two-dimensional); sequence of points form a closed, non-self intersecting ring; the first ring denotes the exterior ring, zero or more subsequent rings denote holes in this exterior ring
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Multipoint
+</td>
+<td style="text-align:left;width: 12cm; ">
+set of points; a MULTIPOINT is simple if no two Points in the MULTIPOINT are equal
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Multilinestring
+</td>
+<td style="text-align:left;width: 12cm; ">
+Set of linestrings
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Multipolygon
+</td>
+<td style="text-align:left;width: 12cm; ">
+set of polygons
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 4cm; ">
+Geometrycollection
+</td>
+<td style="text-align:left;width: 12cm; ">
+Set of geometries of any type with exception of geometrycollection
+</td>
+</tr>
+</tbody>
+</table>
+<p>These core geometry types are fully supported by the R package <strong>sf</strong> <span class="citation">(Pebesma <a href="#ref-sf">2018</a>)</span>. <strong>sf</strong> is a package providing a class system for geographic vector data <span class="citation">(Lovelace, Nowosad, and Muenchow <a href="#ref-geocomputation">2019</a>)</span> supersede, <strong>sp</strong>—methods for spatial data <span class="citation">(Bivand, Pebesma, and Gomez-Rubio <a href="#ref-sp">2013</a>)</span>. It also provides a consistent command-line interface to GEOS and GDAL, superseding <strong>rgdal</strong>— for data read/write <span class="citation">(Bivand, Keitt, and Rowlingson <a href="#ref-rgdal">2019</a>)</span> and <strong>rgeos</strong>—for spatial operations <span class="citation">(Bivand and Rundel <a href="#ref-rgeos">2018</a>)</span> packages</p>
+</div>
+</div>
+<div id="reading-vector-data" class="section level2">
+<h2><span class="header-section-number">4.3</span> Reading vector data</h2>
+<p>We will use the <strong>sf</strong> package to work with vector data in R [<span class="citation">Pebesma (<a href="#ref-sf">2018</a>)</span>. Notice that the <strong>rgdal</strong> package automatically loads when <strong>sf</strong> is loaded. The <strong>sf</strong> package has the <code>st_read()</code> function that read different types of vector data to sf object.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(sf)</code></pre>
+<div id="reading-shapefiles" class="section level3">
+<h3><span class="header-section-number">4.3.1</span> Reading shapefiles</h3>
+<p>Shapefile is the widely used vector format in GIS software. The function <code>st_read()</code> import any type of shapefile into R. for example the chunk block below show how to import the sampling location that are in shapefile format into simple feature object in R’s worksapace.</p>
+<pre class="sourceCode r"><code class="sourceCode r">location =<span class="st"> </span><span class="kw">st_read</span>(<span class="st">&quot;location.shp&quot;</span>)</code></pre>
+<pre><code>## Reading layer `location&#39; from data source `E:\bookdown\spatil_r\location.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 18 features and 1 field
+## geometry type:  POINT
+## dimension:      XY
+## bbox:           xmin: 39.45336 ymin: -6.850945 xmax: 39.55239 ymax: -6.461915
+## epsg (SRID):    4326
+## proj4string:    +proj=longlat +datum=WGS84 +no_defs</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">location</code></pre>
+<pre><code>## Simple feature collection with 18 features and 1 field
+## geometry type:  POINT
+## dimension:      XY
+## bbox:           xmin: 39.45336 ymin: -6.850945 xmax: 39.55239 ymax: -6.461915
+## epsg (SRID):    4326
+## proj4string:    +proj=longlat +datum=WGS84 +no_defs
+## First 10 features:
+##          name                   geometry
+## 1   station 1 POINT (39.45336 -6.850945)
+## 2   station 2 POINT (39.45336 -6.822652)
+## 3   station 3 POINT (39.46751 -6.787286)
+## 4   station 4 POINT (39.47458 -6.758993)
+## 5   station 5   POINT (39.47812 -6.7307)
+## 6   station 6 POINT (39.49226 -6.713016)
+## 7   station 7 POINT (39.48519 -6.695333)
+## 8   station 8 POINT (39.49226 -6.659967)
+## 9   station 9  POINT (39.50641 -6.64582)
+## 10 station 10 POINT (39.51702 -6.631674)</code></pre>
+<p>When we print the this simple feature it tells us that it has 18 features that span between longitude 39.45336°E and 39.55239°E and latitude 6.850945°S and 6.461915°S with defined geographical coordinate system of <code>WGS84</code>.</p>
+</div>
+<div id="reading-gpx-file" class="section level3">
+<h3><span class="header-section-number">4.3.2</span> Reading GPX file</h3>
+<p>The <code>st_read()</code> function can also read files from GPS devices with the <code>.gpx</code> extension.</p>
+<pre class="sourceCode r"><code class="sourceCode r">track =<span class="st"> </span><span class="kw">st_read</span>(<span class="st">&quot;Track-180911-063740.gpx&quot;</span>, <span class="dt">quiet  =</span> <span class="ot">TRUE</span>)</code></pre>
+<pre><code>## Warning in evalq((function (..., call. = TRUE, immediate. = FALSE,
+## noBreaks. = FALSE, : automatically selected the first layer in a data
+## source containing more than one.</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">track</code></pre>
+<pre><code>## Simple feature collection with 1 feature and 24 fields
+## geometry type:  POINT
+## dimension:      XY
+## bbox:           xmin: 39.44527 ymin: -6.907095 xmax: 39.44527 ymax: -6.907095
+## epsg (SRID):    4326
+## proj4string:    +proj=longlat +datum=WGS84 +no_defs
+##    ele                time magvar geoidheight                    name  cmt
+## 1 14.4 2018-09-11 07:42:07     NA          NA Track Recording Stopped &lt;NA&gt;
+##                                                                                 desc
+## 1 Recording stopped at 33&#39;00&quot; because the user stopped it after 6.58km (0.50m gain).
+##    src link1_href link1_text link1_type link2_href link2_text link2_type
+## 1 &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;
+##    sym type  fix sat hdop vdop pdop ageofdgpsdata dgpsid  x_speed
+## 1 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;  NA   NA   NA   NA            NA     NA 0.385527
+##                     geometry
+## 1 POINT (39.44527 -6.907095)</code></pre>
+<p>We can assess the geographical extent of the simple feature track with the <code>st_bbox()</code> function.</p>
+<pre class="sourceCode r"><code class="sourceCode r">track <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">st_bbox</span>()</code></pre>
+<pre><code>##      xmin      ymin      xmax      ymax 
+## 39.445274 -6.907095 39.445274 -6.907095</code></pre>
+<p>And check the type of geographical coordinate system with <code>st_crs()</code> function</p>
+<pre class="sourceCode r"><code class="sourceCode r">track <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">st_crs</span>()</code></pre>
+<pre><code>## Coordinate Reference System:
+##   EPSG: 4326 
+##   proj4string: &quot;+proj=longlat +datum=WGS84 +no_defs&quot;</code></pre>
+</div>
+</div>
+<div id="make-shapefiles-from-tabular-data" class="section level2">
+<h2><span class="header-section-number">4.4</span> Make shapefiles from Tabular data</h2>
+<p>Sometimes the geographical information are in tabular form and you need to convert them into simple feature to work with spatial analysis and mapping. The <strong>sf</strong> package provide a <code>st_as_sf()</code> function that can make simple feature from the location information in the table. To illustrate this point, let us first load the file that contain the geographical information into the workspace.</p>
+<pre class="sourceCode r"><code class="sourceCode r">location =<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;kimbiji_kizimkazi_transect.csv&quot;</span>)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   lon = col_double(),
+##   lat = col_double()
+## )</code></pre>
+<p>Looking the internal structure of the location object we loaded, we find that there are eighteen observations and each observation has the longitude and latitude information.</p>
+<pre class="sourceCode r"><code class="sourceCode r">location <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">glimpse</span>()</code></pre>
+<pre><code>## Observations: 18
+## Variables: 2
+## $ lon &lt;dbl&gt; 39.45336, 39.45336, 39.46751, 39.47458, 39.47812, 39.49226...
+## $ lat &lt;dbl&gt; -6.850945, -6.822652, -6.787286, -6.758993, -6.730700, -6....</code></pre>
+<p>The file contain only the geographical information. We can add the column for station names. <code>mutate()</code> function from <strong>dplyr</strong> package add the third column. Because the station name should be sequentially numbered, the <code>paste()</code> function was used to do this.</p>
+<pre class="sourceCode r"><code class="sourceCode r">location =<span class="st"> </span>location <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">name =</span> <span class="kw">paste</span>(<span class="st">&quot;station&quot;</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">18</span>))</code></pre>
+<p>Once we know that the dataset contain the longitude and latitude information, we can use these spatial information to make simple feature object using the <code>st_as_sf()</code> from <strong>sf</strong> package</p>
+<pre class="sourceCode r"><code class="sourceCode r">location.sf =<span class="st"> </span>location <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">st_as_sf</span>(<span class="dt">coords =</span> <span class="kw">c</span>(<span class="st">&quot;lon&quot;</span>, <span class="st">&quot;lat&quot;</span>))
+
+location.sf</code></pre>
+<pre><code>## Simple feature collection with 18 features and 1 field
+## geometry type:  POINT
+## dimension:      XY
+## bbox:           xmin: 39.45336 ymin: -6.850945 xmax: 39.55239 ymax: -6.461915
+## epsg (SRID):    NA
+## proj4string:    NA
+## # A tibble: 18 x 2
+##    name                   geometry
+##    &lt;chr&gt;                   &lt;POINT&gt;
+##  1 station 1  (39.45336 -6.850945)
+##  2 station 2  (39.45336 -6.822652)
+##  3 station 3  (39.46751 -6.787286)
+##  4 station 4  (39.47458 -6.758993)
+##  5 station 5    (39.47812 -6.7307)
+##  6 station 6  (39.49226 -6.713016)
+##  7 station 7  (39.48519 -6.695333)
+##  8 station 8  (39.49226 -6.659967)
+##  9 station 9   (39.50641 -6.64582)
+## 10 station 10 (39.51702 -6.631674)
+## 11 station 11  (39.52056 -6.61399)
+## 12 station 12 (39.52763 -6.578624)
+## 13 station 13 (39.52763 -6.557404)
+## 14 station 14  (39.5347 -6.539721)
+## 15 station 15 (39.54178 -6.518501)
+## 16 station 16 (39.54531 -6.497281)
+## 17 station 17 (39.54531 -6.483135)
+## 18 station 18 (39.55239 -6.461915)</code></pre>
+<p>The <code>coords</code> parameter is given the <code>latitude</code> and <code>longitude</code> value columns–values used to locate the points associated with each record. We now have a simple featuere with 18 points. However, the simple feature lack the coordinate system. We can define the coordinate system for the simple feature with the <code>st_set_crs()</code> function and parse the epsg code of WGS84.</p>
+<pre class="sourceCode r"><code class="sourceCode r">location.sf =<span class="st"> </span>location.sf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">st_set_crs</span>(<span class="dv">4326</span>)</code></pre>
+<p>Let us check if the <code>location.sf</code> is indeed a spatial object</p>
+<pre class="sourceCode r"><code class="sourceCode r">location.sf</code></pre>
+<pre><code>## Simple feature collection with 18 features and 1 field
+## geometry type:  POINT
+## dimension:      XY
+## bbox:           xmin: 39.45336 ymin: -6.850945 xmax: 39.55239 ymax: -6.461915
+## epsg (SRID):    4326
+## proj4string:    +proj=longlat +datum=WGS84 +no_defs
+## # A tibble: 18 x 2
+##    name                   geometry
+##    &lt;chr&gt;              &lt;POINT [Â°]&gt;
+##  1 station 1  (39.45336 -6.850945)
+##  2 station 2  (39.45336 -6.822652)
+##  3 station 3  (39.46751 -6.787286)
+##  4 station 4  (39.47458 -6.758993)
+##  5 station 5    (39.47812 -6.7307)
+##  6 station 6  (39.49226 -6.713016)
+##  7 station 7  (39.48519 -6.695333)
+##  8 station 8  (39.49226 -6.659967)
+##  9 station 9   (39.50641 -6.64582)
+## 10 station 10 (39.51702 -6.631674)
+## 11 station 11  (39.52056 -6.61399)
+## 12 station 12 (39.52763 -6.578624)
+## 13 station 13 (39.52763 -6.557404)
+## 14 station 14  (39.5347 -6.539721)
+## 15 station 15 (39.54178 -6.518501)
+## 16 station 16 (39.54531 -6.497281)
+## 17 station 17 (39.54531 -6.483135)
+## 18 station 18 (39.55239 -6.461915)</code></pre>
+<p>let us check the class of the simple feature</p>
+<pre class="sourceCode r"><code class="sourceCode r">location.sf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">class</span>()</code></pre>
+<pre><code>## [1] &quot;sf&quot;         &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</code></pre>
+<p>Note the object has four class <code>sf</code>, <code>tbl_df</code>, <code>tbl</code>, and <code>data_frame</code>. The data frame contents was also carried over into the attributes table of the simple feature. There was only one attribute, <code>name</code>, other than <code>lon</code> and <code>lat</code> in the tabular data used to create this simple feature.</p>
+<p>Looking on the file clearly the projection is defined to <code>WGS84</code>. We can further transform the geographical coordinate system that is degree into the UTM, which is in metric. The function <code>st_transform()</code> from <strong>sf</strong> package handle transformation of coordinate system <span class="citation">(Pebesma <a href="#ref-sf">2018</a>)</span>. The epsg code for zone 37 south is 32737, which is parsed into the function.</p>
+<pre class="sourceCode r"><code class="sourceCode r">location.utm =<span class="st"> </span>location.sf <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">st_transform</span>(<span class="dv">32737</span>)
+
+location.utm</code></pre>
+<pre><code>## Simple feature collection with 18 features and 1 field
+## geometry type:  POINT
+## dimension:      XY
+## bbox:           xmin: 550090.3 ymin: 9242705 xmax: 561079.7 ymax: 9285701
+## epsg (SRID):    32737
+## proj4string:    +proj=utm +zone=37 +south +datum=WGS84 +units=m +no_defs
+## # A tibble: 18 x 2
+##    name                 geometry
+##    &lt;chr&gt;             &lt;POINT [m]&gt;
+##  1 station 1  (550090.3 9242705)
+##  2 station 2  (550093.2 9245833)
+##  3 station 3  (551660.2 9249741)
+##  4 station 4  (552444.8 9252868)
+##  5 station 5  (552838.7 9255995)
+##  6 station 6  (554404.1 9257949)
+##  7 station 7  (553624.3 9259904)
+##  8 station 8    (554410 9263813)
+##  9 station 9  (555975.3 9265376)
+## 10 station 10 (557149.7 9266938)
+## 11 station 11 (557542.7 9268893)
+## 12 station 12 (558328.7 9272802)
+## 13 station 13 (558331.2 9275147)
+## 14 station 14 (559115.3 9277101)
+## 15 station 15 (559899.8 9279446)
+## 16 station 16 (560293.4 9281792)
+## 17 station 17 (560295.1 9283356)
+## 18 station 18 (561079.7 9285701)</code></pre>
+</div>
+<div id="export-simple-feature-as-shapefile" class="section level2">
+<h2><span class="header-section-number">4.5</span> Export simple feature as shapefile</h2>
+<p>Once the simple feature is created, you might be interested to export as shapefile for use with other GIS software like QGIS and Esri ARCGIS. The <strong>sf</strong> package has a <code>st_write()</code> function that export simple feature from the workspace into shapefiles in the working directory. The chunk block below demonstrates the export of simple feature object location.sf into the location.shp in the working directory—denoted with <code>./</code></p>
+<pre class="sourceCode r"><code class="sourceCode r">location.sf <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">st_write</span>(<span class="st">&quot;./location.shp&quot;</span>)</code></pre>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-sf">
+<p>Pebesma, Edzer. 2018. “Simple Features for R: Standardized Support for Spatial Vector Data.” <em>The R Journal</em>. <a href="https://journal.r-project.org/archive/2018/RJ-2018-009/index.html">https://journal.r-project.org/archive/2018/RJ-2018-009/index.html</a>.</p>
+</div>
+<div id="ref-geocomputation">
+<p>Lovelace, Robin, Jakub Nowosad, and Jannes Muenchow. 2019. <em>Geocomputation with R</em>. CRC Press.</p>
+</div>
+<div id="ref-sp">
+<p>Bivand, Roger S., Edzer Pebesma, and Virgilio Gomez-Rubio. 2013. <em>Applied Spatial Data Analysis with R, Second Edition</em>. Springer, NY. <a href="http://www.asdar-book.org/">http://www.asdar-book.org/</a>.</p>
+</div>
+<div id="ref-rgdal">
+<p>Bivand, Roger, Tim Keitt, and Barry Rowlingson. 2019. <em>Rgdal: Bindings for the ’Geospatial’ Data Abstraction Library</em>. <a href="https://CRAN.R-project.org/package=rgdal">https://CRAN.R-project.org/package=rgdal</a>.</p>
+</div>
+<div id="ref-rgeos">
+<p>Bivand, Roger, and Colin Rundel. 2018. <em>Rgeos: Interface to Geometry Engine - Open Source (’Geos’)</em>. <a href="https://CRAN.R-project.org/package=rgeos">https://CRAN.R-project.org/package=rgeos</a>.</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="rasterv.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="graphics.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"google": false,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"download": ["spatil_r.pdf", "spatil_r.epub", "spatil_r.mobi"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(src))
+      src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

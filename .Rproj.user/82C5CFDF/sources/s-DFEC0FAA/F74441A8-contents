@@ -1,0 +1,9 @@
+# Ocean circulation
+The ocean circulation is composed of a *wind-driven* component and a *thermohaline* component [ref]. The wind driven circulation dominates the surface current, but it is largerly restricted to the topmost few hundred meters [ref]. The circulation deeper in the ocean is largely depends on the slower thermohaline circulation. 
+
+By generating ocean waves, surface winds transfer horizontal momentum from the atmosphere int the ocean. The waves stir the uppermost layer of the ocean, mixing the momentum downward. The mommentum, as reflected in the distribuion surface current shown in figure ...mirrors the pattern of surface winds shown in figure....and fig..., with closed anticyclonic circulation (reffered to as gyres) at subtropical latitude  and clyclonic gyres at subpolar laitudes.
+
+```{r,fig.cap="seasonal mean ocan surface current based on the surface drifter. The prominent feature like the East African Coastal Current, Somali Current and Mozambique current are western boundary current are clearly visible.  The westward south Equatorial current is driven by easterlies winds"}
+
+```
+

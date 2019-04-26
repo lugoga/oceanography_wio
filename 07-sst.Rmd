@@ -1,0 +1,499 @@
+# Sea Surface Temperature
+
+
+## Annual Mean Sea Surface Temperature
+The global distribution of sea surface temperature is shaped by both radiative and dynamical factors relating to the pattern of seasonally varying, climatological--mean surface wind field over the oceans (Fig wind). Radiative heating is the dominant factor. That incident solar radiatio is so much sronger in the tropics than in the plar regions gives rise to a strong north-south temperature gradient, which dominates the annual-mean field shown in figure \@ref(fig:fig701)a & \@ref(fig:fig701)b
+
+```{r}
+require(sf)
+require(tidyverse)
+```
+
+```{r}
+woa.files = dir("e:/MatlabWorking/WOA/WOA09_zonal_sections_every_5_degrees/", full.names = TRUE)
+```
+
+```{r}
+
+woa.list = list()
+for (i in 1:length(woa.files)){
+  
+  woa.list[[i]] = read_table2(woa.files[i])
+  
+}
+
+```
+
+```{r}
+woa.tb = woa.list %>% bind_rows() %>% rename(Lon = Long)
+
+colnames(woa.tb) = tolower(colnames(woa.tb))
+```
+
+```{r fig701, warning=FALSE,fig.cap="Annual mean sea surface temperature at the surface", fig.align='center'}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = temp), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(0,30,4))+
+  theme_bw() + 
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Temperature(~degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(10, "cm"),
+                               barheight = unit(.4, "cm")))+
+  annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+
+
+```
+
+
+## Anomaly of sea surface temperature
+The effect of winds on the sea surface temperature pattern bcome more cleraly apparent when the zonally averged sea surfae temperature at each latitud is removed from the mean field, leaving just the departure from the zonal-mean, shown in figure \@ref(fig:fig702). Figure \@ref(fig:fig702) clearly show that the eastern side of the oceans are relatively cooler than the western side. We also notice that the upwelling areas are clearly visible in figure \@ref(fig:fig702). These feature are hidden if you rely on the actual value of the sea surface temperature shown in figure \@ref(fig:fig702).
+
+The chunk below highlight the lines of code used to calculate the zonal departure (anomaly) of sea surface temprature from the mean-zonal. The comment in the before the line of code in the chunk briefly explain what each line in the loop does. 
+
+```{r, message=FALSE, warning=FALSE, comment=""}
+
+## create a dummy file that will store the calculated data for each file
+temperature.anomaly = list()
+
+for (i in 1:length(woa.files)){
+  
+      ## read the file
+  temperature.anomaly[[i]] = read_table2(woa.files[i]) %>% 
+    ## pick the surface temperature
+    filter(PRES == 0) %>%
+    ## select the variable of interes
+    select(pressure = PRES, lon = Long, lat = Lat,temp = TEMP) %>% 
+    ## compute the sst anomaly at each zonal field
+    mutate(anomaly = temp-mean(temp))
+  
+}
+
+temperature.anomaly =  temperature.anomaly %>% 
+  ## convert a list fileto a tibble
+  bind_rows()
+
+```
+
+
+
+```{r fig702, fig.cap="Departure of the sea surfae temprature at each location from the zonally averaged field", fig.cap="center", warning=FALSE}
+
+ggplot() +
+  metR::geom_contour_fill(data = temperature.anomaly,
+                          aes(x = lon, y = lat, z = anomaly), na.fill = T, bins = 12) +
+  geom_sf(data =  world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(-6,6,2))+
+  # metR::scale_fill_divergent()+
+  theme_bw() +
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Temperature~anomaly(~degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(10, "cm"),
+                               barheight = unit(.4, "cm")))+
+  annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+```
+
+
+
+```{r, message=FALSE, warning=FALSE, comment=""}
+
+## create a dummy file that will store the calculated data for each file
+temperature.anomaly = list()
+
+for (i in 1:length(woa.files)){
+  
+      ## read the file
+  temperature.anomaly[[i]] = read_table2(woa.files[i]) %>% 
+    ## pick the surface temperature
+    filter(PRES == 0) %>%
+    ## select the variable of interes
+    select(pressure = PRES, lon = Long, lat = Lat,temp = TEMP)%>% 
+    ## pick values that are within the indian ocean region
+    filter(lon > 25 & lon < 135 & lat > -45 & lat < 35) %>%
+    ## compute the sst anomaly at each zonal field
+    mutate(anomaly = temp-mean(temp))
+  
+}
+
+temperature.anomaly.wio =  temperature.anomaly %>% 
+  ## convert a list fileto a tibble
+  bind_rows()
+
+```
+
+```{r fig703, fig.cap="Climatological zonal annual sea surface temperature anomaly in the Indian Ocean"}
+
+
+ggplot() +
+  metR::geom_contour_fill(data = temperature.anomaly.wio,
+                          aes(x = lon, y = lat, z = anomaly), na.fill = T, bins = 120)+
+  metR::geom_contour2(data = temperature.anomaly.wio,
+                          aes(x = lon, y = lat, z = anomaly), na.fill = T)+
+  metR::geom_text_contour(data = temperature.anomaly.wio,
+                          aes(x = lon, y = lat, z = anomaly), na.fill = T, 
+                          check_overlap = TRUE, parse = TRUE)+
+  geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(-4,4,2))+
+  # metR::scale_fill_divergent()+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Temperature~anomaly(~degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL, title = "Climatological Annual Temperature Anomaly")
+```
+
+## Precipitation
+
+```{r}
+rain.files = dir("e:/GIS/ROADMAP/LAYERS DATA/GLOBAL LAYERS/precip_per_3_hrs/", full.names = T, pattern = ".nc")
+
+
+```
+
+Create a vector object of names of the months arranged according to order of files in the directory. This is important because want to ensure the right file is processed. However, the order will be changed and arranged according to the calender when we want to animate or plot the precipation rate in temporal series. 
+
+```{r}
+## 
+months = c("April", "August", "December", "February", "January", "July", 
+           "June", "March", "May", "November", "October", "September")
+```
+
+```{r}
+rain = list()
+
+for (j in 1:length(rain.files)){
+  
+    ## read the file with the raster package
+  rain[[j]] = raster::raster(rain.files[j]) %>% 
+    ## convert raster to data frame
+    raster::as.data.frame(xy = TRUE) %>% 
+    ## change the variable names
+    rename(lon =x , lat = y , rain= 3) %>% 
+    ## change the longitude from 0-360 to -180-180 range
+    mutate(lon = lon-180, month = months[j]) %>% 
+    ## pick the rain value within the AOI
+    filter(lon > 25 & lon < 135 & lat > -45 & lat < 35) %>% 
+    as_tibble()
+}
+
+rain.tb = rain %>% bind_rows()
+```
+
+```{r}
+
+ggplot()+
+  metR::geom_contour_fill(data = rain.tb %>% filter(month == months[1]), 
+                          aes(x = lon, y = lat, z = rain), na.fill = TRUE)+
+ geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(.2,1.5,.2))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Precipitation~rate(~ms^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL, title = paste("Climatological Preciptiation rate for ", months[1]))
+
+
+```
+
+## WInd speed and direction
+```{r}
+wind.files = dir("e:/MatlabWorking/coads/wind_vec/", pattern = ".nc", full.names = TRUE )
+```
+
+```{r}
+## make month vector as files order in the directory
+months = c("April", "August", "December", "February", "January", "July", 
+           "June", "March", "May", "November", "October", "September")
+```
+
+
+```{r}
+u = list()
+v = u
+
+for (n in 1:12){
+  
+  u[[n]] = raster::raster(wind.files[n]) %>%
+    raster::as.data.frame(xy = TRUE) %>% 
+    rename(u = 3) %>% 
+    mutate(month = months[n]) %>% 
+    as_tibble()
+  
+  v[[n]] = raster::raster(wind.files[n+12]) %>%#v begin from 13
+    raster::as.data.frame(xy = TRUE) %>% 
+    rename(v = 3)%>%
+    mutate(month = months[n])%>% 
+    as_tibble()
+}
+
+wind.tb = u %>% bind_rows() %>% 
+  bind_cols(v %>% bind_rows()) %>% 
+  select(month, lon = x, lat = y, u, v) %>%
+  mutate(speed = sqrt(u^2 + v^2))
+
+wind.indian  = wind.tb %>% filter(lon > 25 & lon < 135 & lat > -45 & lat < 35)
+
+```
+
+
+
+```{r fig704, fig.cap="Climatological Wind speed and direction in the Indian Ocean for January"}
+
+ggplot()+
+  metR::geom_contour_fill(data = wind.indian %>% filter(month == "January"), 
+                          aes(x = lon, y = lat, z = speed), na.fill = TRUE)+
+  metR::geom_vector(data = wind.indian %>% filter(month == "January"), 
+                    aes(x = lon, y = lat, dx = u, dy = v ), 
+                    arrow.type = "open", arrow.angle = 30)+
+  metR::scale_mag(max = 15,name = NULL, labels = "15m/s")+
+  geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(0,12,2))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Wind~speed(~ms^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+
+
+```
+
+```{r fig705, fig.cap="Climatological Wind speed and direction in the Indian Ocean for July"}
+ggplot()+
+  metR::geom_contour_fill(data = wind.indian %>% filter(month == "July"), 
+                          aes(x = lon, y = lat, z = speed), na.fill = TRUE)+
+  metR::geom_vector(data = wind.indian %>% filter(month == "July"), 
+                    aes(x = lon, y = lat, dx = u, dy = v ), 
+                    arrow.type = "open", arrow.angle = 30)+
+  metR::scale_mag(max = 15,name = NULL, labels = "15m/s")+
+  geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(0,15,3))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Wind~speed(~ms^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+```
+
+## air temperature
+List of all files of air temperature from the working directory
+```{r}
+air.files = dir("e:/MatlabWorking/coads/airtemp/", full.names = T, pattern = ".nc")
+
+
+```
+
+Create a vector object of names of the months arranged according to order of files in the directory. This is important because want to ensure the right file is processed. However, the order will be changed and arranged according to the calender when we want to animate or plot the precipation rate in temporal series. 
+
+```{r}
+## 
+months = c("April", "August", "December", "February", "January", "July", 
+           "June", "March", "May", "November", "October", "September")
+```
+
+Read the file with `raster::raster(air.files[j])`  and convert it to data frame with `raster::as.data.frame(xy = TRUE). After changing the variable names with ``rename(lon =x , lat = y , temperature= 3)` and create a month variable, the value of air temperature we limited to the study area domain with `filter(lon > 25 & lon < 135 & lat > -45 & lat < 35)`. `air.temp` is list with twelve data frame---each with several rows and columns. To stich the data frame rowside, we used the `air.temp %>% bind_rows()` and assign the product as `air.temp.tb = air.temp`
+
+```{r}
+air.temp = list()
+
+for (j in 1:length(rain.files)){
+  
+    ## read the file with the raster package
+  air.temp[[j]] = raster::raster(air.files[j]) %>% 
+    ## convert raster to data frame
+    raster::as.data.frame(xy = TRUE) %>% 
+    ## change the variable names
+    rename(lon =x , lat = y , temperature= 3) %>% 
+    ## change the longitude from 0-360 to -180-180 range
+    mutate(month = months[j]) %>% 
+    ## pick the rain value within the AOI
+    filter(lon > 25 & lon < 135 & lat > -45 & lat < 35) %>% 
+    as_tibble()
+}
+
+air.temp.tb = air.temp %>% bind_rows()
+```
+
+```{r fig706,  fig.cap="Air temperature of the Indian Ocean for January"}
+
+ggplot()+
+  metR::geom_contour_fill(data = air.temp.tb %>% filter(month == "January"), 
+                          aes(x = lon, y = lat, z = temperature), na.fill = TRUE)+
+ geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(8,30,4))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Precipitation~rate(~ms^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL, title = "Climatological Preciptiation rate for January ")
+
+
+```
+
+
+```{r fig707,  fig.cap="Air temperature of the Indian Ocean for July"}
+
+ggplot()+
+  metR::geom_contour_fill(data = air.temp.tb %>% filter(month == "July"), 
+                          aes(x = lon, y = lat, z = temperature), na.fill = TRUE)+
+ geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(8,30,4))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Air~temperature~(degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+
+
+```
+
+## Zonal anomaly of air temperature
+To calculate the zonal anomaly of air temperature, we first have to calculate the climatological mean air temperature with the code below. 
+
+```{r}
+air.temp.clim = air.temp.tb %>% 
+  group_by(lon,lat) %>% 
+  summarise(temperature = mean(temperature, na.rm = TRUE)) %>% 
+  ungroup()
+
+```
+
+Once we obtain the climatological mean, we can now compute air temperature anomaly at each latitude. First we obtain the unique latitude value using the `Lat = air.temp.clim$lat %>% unique()` and create a dummy files that will contain a data frame of anomalies computed at each latitude. 
+
+```{r}
+
+Lat = air.temp.clim$lat %>% unique()
+
+anomalies = list()
+
+for (k in 1:length(Lat)){
+  anomalies[[k]] = air.temp.clim %>% filter(lat == Lat[k]) %>% 
+    mutate(anomaly = temperature-mean(temperature, na.rm = TRUE))
+  
+}
+anomalies = anomalies %>% bind_rows()
+```
+
+
+```{r fig708, fig.cap="Annual mean departure of air temperature from zonal average"}
+ggplot()+
+  metR::geom_contour_fill(data = anomalies, 
+                          aes(x = lon, y = lat, z = anomaly), na.fill = TRUE)+
+ geom_sf(data =  world, col = 1, fill = "grey80")+
+  coord_sf(xlim = c(30,130), ylim = c(-40,30), clip = "on", expand = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(-3,3,1))+
+  scale_y_continuous(breaks = seq(-30,20,10), labels = metR::LatLabel(seq(-30,20,10)))+
+  scale_x_continuous(breaks = seq(40,120,20), labels = metR::LonLabel(seq(40,120,20)))+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"), 
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Air~temperature~(degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(8, "cm"),
+                               barheight = unit(.4, "cm")))+
+  # annotate(geom = "text", x = 170 ,y = 75,  label = "a)", col = "white")+
+  labs(x = NULL, y = NULL)
+```
+
+The zonal average air temperature shown in figure \@ref(fig:fig708) like the zonal average sea surface temperature (Figure \@ref(fig:fig703)), both show small departure from the mean across the area where the EACC path. These is also the area that wind speed is strong during January (Figure \@ref(fig:fig704)) and July (Figure \@ref(fig:fig705)). 
+

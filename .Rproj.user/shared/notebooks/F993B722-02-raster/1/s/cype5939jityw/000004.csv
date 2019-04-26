@@ -1,0 +1,6 @@
+"0","tz.bath.utm = projectRaster(tz.bath, tzutm)
+"
+"2","no non-missing arguments to min; returning Inf"
+"2","Error in (function (classes, fdef, mtable)  : 
+  unable to find an inherited method for function ‘res’ for signature ‘""character""’
+"

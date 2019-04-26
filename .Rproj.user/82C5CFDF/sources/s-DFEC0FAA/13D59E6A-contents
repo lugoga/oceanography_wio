@@ -1,0 +1,6 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+This book illustrate in simple manner how to use free and open source but powerful R software to analysis and visualize spatial data.

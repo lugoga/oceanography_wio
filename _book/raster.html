@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Chapter 2 Raster Data | A glimpse of GIS and Remote Sensing with R</title>
+  <meta name="description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R">
+  <meta name="generator" content="bookdown  and GitBook 2.6.7">
+
+  <meta property="og:title" content="Chapter 2 Raster Data | A glimpse of GIS and Remote Sensing with R" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 2 Raster Data | A glimpse of GIS and Remote Sensing with R" />
+  
+  <meta name="twitter:description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R" />
+  
+
+<meta name="author" content="Masumbuko Semba">
+
+
+<meta name="date" content="2019-04-21">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<link rel="prev" href="intro.html">
+<link rel="next" href="rasterv.html">
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+
+
+
+
+
+
+
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+
+
+<style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">A glimpse of GIS and Remote Sensing with R</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Prerequisites</a></li>
+<li class="chapter" data-level="" data-path="sources.html"><a href="sources.html"><i class="fa fa-check"></i>Sources</a></li>
+<li class="chapter" data-level="1" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>1</b> Introduction to Spatial Analysis</a></li>
+<li class="chapter" data-level="2" data-path="raster.html"><a href="raster.html"><i class="fa fa-check"></i><b>2</b> Raster Data</a><ul>
+<li class="chapter" data-level="2.1" data-path="raster.html"><a href="raster.html#introduction-to-raster-data"><i class="fa fa-check"></i><b>2.1</b> Introduction to Raster data</a><ul>
+<li class="chapter" data-level="2.1.1" data-path="raster.html"><a href="raster.html#geotiff"><i class="fa fa-check"></i><b>2.1.1</b> GeoTiff</a></li>
+<li class="chapter" data-level="2.1.2" data-path="raster.html"><a href="raster.html#explore-the-raster-attribute"><i class="fa fa-check"></i><b>2.1.2</b> Explore the raster attribute</a></li>
+<li class="chapter" data-level="2.1.3" data-path="raster.html"><a href="raster.html#read-a-geotiff-raster-data"><i class="fa fa-check"></i><b>2.1.3</b> Read a GeoTIFF raster data</a></li>
+<li class="chapter" data-level="2.1.4" data-path="raster.html"><a href="raster.html#view-raster-coordinate-reference-system"><i class="fa fa-check"></i><b>2.1.4</b> View Raster Coordinate Reference System</a></li>
+<li class="chapter" data-level="2.1.5" data-path="raster.html"><a href="raster.html#dealing-with-missing-data-in-raster"><i class="fa fa-check"></i><b>2.1.5</b> Dealing with missing data in raster</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="raster.html"><a href="raster.html#assign-projection-and-reproject-raster-data-in-r"><i class="fa fa-check"></i><b>2.2</b> Assign projection and Reproject Raster Data in R</a></li>
+<li class="chapter" data-level="2.3" data-path="raster.html"><a href="raster.html#raster-resolution"><i class="fa fa-check"></i><b>2.3</b> Raster resolution</a></li>
+<li class="chapter" data-level="2.4" data-path="raster.html"><a href="raster.html#raster-calculation"><i class="fa fa-check"></i><b>2.4</b> Raster Calculation</a></li>
+<li class="chapter" data-level="2.5" data-path="raster.html"><a href="raster.html#multi-bands-satellite-imagery"><i class="fa fa-check"></i><b>2.5</b> Multi-bands satellite imagery</a><ul>
+<li class="chapter" data-level="2.5.1" data-path="raster.html"><a href="raster.html#rater-stacks"><i class="fa fa-check"></i><b>2.5.1</b> Rater Stacks</a></li>
+</ul></li>
+<li class="chapter" data-level="2.6" data-path="raster.html"><a href="raster.html#manipulate-raster"><i class="fa fa-check"></i><b>2.6</b> Manipulate raster</a></li>
+<li class="chapter" data-level="2.7" data-path="raster.html"><a href="raster.html#raster-time-series-data"><i class="fa fa-check"></i><b>2.7</b> Raster time series data</a></li>
+<li class="chapter" data-level="2.8" data-path="raster.html"><a href="raster.html#comparing-ndvi-from-two-different-sites"><i class="fa fa-check"></i><b>2.8</b> comparing NDVI from Two different sites</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="rasterv.html"><a href="rasterv.html"><i class="fa fa-check"></i><b>3</b> Raster Visualization</a><ul>
+<li class="chapter" data-level="3.1" data-path="rasterv.html"><a href="rasterv.html#visualize-bathmetry-with-ggplot2"><i class="fa fa-check"></i><b>3.1</b> visualize bathmetry with ggplot2</a></li>
+<li class="chapter" data-level="3.2" data-path="rasterv.html"><a href="rasterv.html#convert-data-frame-to-bathmetric-object"><i class="fa fa-check"></i><b>3.2</b> Convert data frame to bathmetric object</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="vector.html"><a href="vector.html"><i class="fa fa-check"></i><b>4</b> Vector Data</a><ul>
+<li class="chapter" data-level="4.1" data-path="vector.html"><a href="vector.html#introduction"><i class="fa fa-check"></i><b>4.1</b> Introduction</a></li>
+<li class="chapter" data-level="4.2" data-path="vector.html"><a href="vector.html#vector-data"><i class="fa fa-check"></i><b>4.2</b> Vector Data</a><ul>
+<li class="chapter" data-level="4.2.1" data-path="vector.html"><a href="vector.html#simple-features"><i class="fa fa-check"></i><b>4.2.1</b> Simple features</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="vector.html"><a href="vector.html#reading-vector-data"><i class="fa fa-check"></i><b>4.3</b> Reading vector data</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="vector.html"><a href="vector.html#reading-shapefiles"><i class="fa fa-check"></i><b>4.3.1</b> Reading shapefiles</a></li>
+<li class="chapter" data-level="4.3.2" data-path="vector.html"><a href="vector.html#reading-gpx-file"><i class="fa fa-check"></i><b>4.3.2</b> Reading GPX file</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="vector.html"><a href="vector.html#make-shapefiles-from-tabular-data"><i class="fa fa-check"></i><b>4.4</b> Make shapefiles from Tabular data</a></li>
+<li class="chapter" data-level="4.5" data-path="vector.html"><a href="vector.html#export-simple-feature-as-shapefile"><i class="fa fa-check"></i><b>4.5</b> Export simple feature as shapefile</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="graphics.html"><a href="graphics.html"><i class="fa fa-check"></i><b>5</b> Making Maps</a><ul>
+<li class="chapter" data-level="5.1" data-path="graphics.html"><a href="graphics.html#introduction-1"><i class="fa fa-check"></i><b>5.1</b> Introduction</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="graphics.html"><a href="graphics.html#the-bathmetry-data"><i class="fa fa-check"></i><b>5.1.1</b> The bathmetry data</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="graphics.html"><a href="graphics.html#creating-a-ggplot"><i class="fa fa-check"></i><b>5.2</b> Creating a ggplot</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="graphics.html"><a href="graphics.html#label"><i class="fa fa-check"></i><b>5.2.1</b> Label</a></li>
+<li class="chapter" data-level="5.2.2" data-path="graphics.html"><a href="graphics.html#annotations"><i class="fa fa-check"></i><b>5.2.2</b> Annotations</a></li>
+<li class="chapter" data-level="5.2.3" data-path="graphics.html"><a href="graphics.html#scales"><i class="fa fa-check"></i><b>5.2.3</b> Scales</a></li>
+<li class="chapter" data-level="5.2.4" data-path="graphics.html"><a href="graphics.html#zooming"><i class="fa fa-check"></i><b>5.2.4</b> Zooming</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="graphics.html"><a href="graphics.html#inset-maps"><i class="fa fa-check"></i><b>5.3</b> Inset maps</a></li>
+<li class="chapter" data-level="5.4" data-path="graphics.html"><a href="graphics.html#static-maps"><i class="fa fa-check"></i><b>5.4</b> Static Maps</a><ul>
+<li class="chapter" data-level="5.4.1" data-path="graphics.html"><a href="graphics.html#map-elements"><i class="fa fa-check"></i><b>5.4.1</b> Map elements</a></li>
+</ul></li>
+<li class="chapter" data-level="5.5" data-path="graphics.html"><a href="graphics.html#animated-maps"><i class="fa fa-check"></i><b>5.5</b> Animated maps</a></li>
+<li class="chapter" data-level="5.6" data-path="graphics.html"><a href="graphics.html#interactive-maps"><i class="fa fa-check"></i><b>5.6</b> Interactive maps</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="final-words.html"><a href="final-words.html"><i class="fa fa-check"></i><b>6</b> Final Words</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A glimpse of GIS and Remote Sensing with R</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="raster" class="section level1">
+<h1><span class="header-section-number">Chapter 2</span> Raster Data</h1>
+<p><strong>Questions</strong></p>
+<ul>
+<li>what is a raster dataset?</li>
+<li>What tools/functions are used to import raster in R?</li>
+<li>How to I work with and plot raster data in R</li>
+<li>How missing or bad data in R are handled with R</li>
+</ul>
+<p><strong>Objectives</strong></p>
+<ul>
+<li>Describe the fundamental attributes of a raster dataset</li>
+<li>Explore raster attributtes and metadata</li>
+<li>Import raster dataset into R workspace</li>
+<li>visualize raster object</li>
+<li>Distinguish single versus multi-bands rasters</li>
+</ul>
+<div id="introduction-to-raster-data" class="section level2">
+<h2><span class="header-section-number">2.1</span> Introduction to Raster data</h2>
+<p>This this section introduce you to the fundamental principles, packages and metadata/raster attributes that are needed to work with raster data in R. The section discuss some of the core metadata elements that you need to understand to work with rasters in R, including CRS and resolution. Furthermore, missing and bad data values stored in raster will be explored and techniques to handles these elements will be illustrated.</p>
+<p>The book use several packages including the <strong>tidyverse</strong> ecosystem <span class="citation">(Wickham <a href="#ref-tidyverse">2017</a>)</span>—with popular packages like the <strong>ggplot2</strong><span class="citation">(Wickham <a href="#ref-ggplot">2016</a>)</span> and <strong>dplyr</strong> <span class="citation">(Wickham et al. <a href="#ref-dplyr">2019</a>)</span>. The widely used packages for handling raster and vector data like <strong>raster</strong> <span class="citation">(Hijmans <a href="#ref-raster">2019</a>)</span>, <strong>sp</strong><span class="citation">(Bivand, Pebesma, and Gomez-Rubio <a href="#ref-sp">2013</a>)</span>, <strong>sf</strong> <span class="citation">(Pebesma <a href="#ref-sf">2018</a>)</span> and <strong>rgdal</strong> <span class="citation">(Bivand, Keitt, and Rowlingson <a href="#ref-rgdal">2019</a>)</span> make core tools in this book. R needs these packages imported into the environment to use their functions, which can easily done with the <code>require()</code> function.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(sf)
+<span class="kw">require</span>(sp)
+<span class="kw">require</span>(raster)
+<span class="kw">require</span>(tidyverse)
+<span class="kw">require</span>(metR)</code></pre>
+<div id="geotiff" class="section level3">
+<h3><span class="header-section-number">2.1.1</span> GeoTiff</h3>
+<p>A popular public domain raster data format is the <code>GeoTIFF</code> format. If maximum portability and platform independence is important, this file format may be a good choice.</p>
+</div>
+<div id="explore-the-raster-attribute" class="section level3">
+<h3><span class="header-section-number">2.1.2</span> Explore the raster attribute</h3>
+<p>One of the common raster file is the *GeoTiff** that embed tags of metadata information bout the raster file. This metadata provide the information of the file and hence help us understand the internal structure of the file. This information can be accessed with the <code>GDALinfo()</code> function <span class="citation">(Bivand, Keitt, and Rowlingson <a href="#ref-rgdal">2019</a>)</span>. Looking at the metadata help us have a glimpse of the file before even the file is imported into the workspace.</p>
+<pre class="sourceCode r"><code class="sourceCode r">rgdal<span class="op">::</span><span class="kw">GDALinfo</span>(<span class="st">&quot;e:/GIS/Tanzania spatial data Bank/Lake_Tanganyika_Bathymetry/Lake_Tanganyika_Bathymetry/grid/tanganyika_dbm (2013_10_23 20_44_28 UTC).tif&quot;</span>)</code></pre>
+<pre><code>## rows        6589 
+## columns     2575 
+## bands       1 
+## lower left origin.x        29.05769 
+## lower left origin.y        -8.811174 
+## res.x       0.000833 
+## res.y       0.000833 
+## ysign       -1 
+## oblique.x   0 
+## oblique.y   0 
+## driver      GTiff 
+## projection  +proj=longlat +datum=WGS84 +no_defs 
+## file        e:/GIS/Tanzania spatial data Bank/Lake_Tanganyika_Bathymetry/Lake_Tanganyika_Bathymetry/grid/tanganyika_dbm (2013_10_23 20_44_28 UTC).tif 
+## apparent band summary:
+##    GDType hasNoDataValue   NoDataValue blockSize1 blockSize2
+## 1 Float32           TRUE -3.402823e+38        128        128
+## apparent band statistics:
+##    Bmin Bmax     Bmean      Bsd
+## 1 -1500    0 -607.0582 427.0307
+## Metadata:
+## AREA_OR_POINT=Area</code></pre>
+</div>
+<div id="read-a-geotiff-raster-data" class="section level3">
+<h3><span class="header-section-number">2.1.3</span> Read a GeoTIFF raster data</h3>
+<p>Once you have a glimpse of the information of the raster—for example the above information show that the tiff contain elevation values and provide the summary statistics of the elevation with minimum value of 0 and maximum value of 1500 with average of 607. It also show the geographical extent with minimum longitude o 29.05769 and maximul latitude of -8.811174. Furthermore, the metadata tell us that the file is projected with World Geodetic System (WGS84) and the cell has a horizontal resolution of 0.000833 degree. Once we know this information, we can read the file with the <code>raster</code> function of <strong>raster</strong> package <span class="citation">(Hijmans <a href="#ref-raster">2019</a>)</span></p>
+<p>For this example, we use the bathmetry information of Lake Tanganyika found in Africa. It the world’s longest freshwater lake, the second largest largest by volume, and the second deepest lake in the world after lake Baikal in Siberia <span class="citation">(“Lake Tanyanyika,” <a href="#ref-wiki2">n.d.</a>)</span>.</p>
+<pre class="sourceCode r"><code class="sourceCode r">lt.bath =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/GIS/Tanzania spatial data Bank/Lake_Tanganyika_Bathymetry/Lake_Tanganyika_Bathymetry/grid/tanganyika_dbm (2013_10_23 20_44_28 UTC).tif&quot;</span>)</code></pre>
+<p>We can <code>summary</code> function to look at the statistics of the bathmetry of this lake. Looking at the descriptive statistics, we notice that the lake has the depth range from 0 to 1500 m and there is no cell without a value.</p>
+<pre class="sourceCode r"><code class="sourceCode r">lt.bath <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summary</span>()</code></pre>
+<pre><code>## Warning in .local(object, ...): summary is an estimate based on a sample of 1e+05 cells (0.59% of all cells)</code></pre>
+<pre><code>##         tanganyika_dbm_.2013_10_23_20_44_28_UTC.
+## Min.                                  -1500.0000
+## 1st Qu.                                -952.9855
+## Median                                 -529.7043
+## 3rd Qu.                                -250.4943
+## Max.                                      0.0000
+## NA&#39;s                                      0.0000</code></pre>
+<p>There are times when a raster file does not show the summary statistics. When this occurs you can manually calculate the cell values using the <code>setMinMax()</code> function.</p>
+<pre class="sourceCode r"><code class="sourceCode r">lt.bath <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">setMinMax</span>() </code></pre>
+<pre><code>## class       : RasterLayer 
+## dimensions  : 6589, 2575, 16966675  (nrow, ncol, ncell)
+## resolution  : 0.000833, 0.000833  (x, y)
+## extent      : 29.05769, 31.20266, -8.811174, -3.322537  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/Tanzania spatial data Bank/Lake_Tanganyika_Bathymetry/Lake_Tanganyika_Bathymetry/grid/tanganyika_dbm (2013_10_23 20_44_28 UTC).tif 
+## names       : tanganyika_dbm_.2013_10_23_20_44_28_UTC. 
+## values      : -1500, 0  (min, max)</code></pre>
+</div>
+<div id="view-raster-coordinate-reference-system" class="section level3">
+<h3><span class="header-section-number">2.1.4</span> View Raster Coordinate Reference System</h3>
+<p>A spatial reference system (SRS) or coordinate referene system (CRS) is a coordinate-based local, regional or global system used to locate geographical entities <span class="citation">(“Coordinate Reference System,” <a href="#ref-wiki1">n.d.</a>)</span>. A spatial reference system defines a specific map projection and transofrmation betweeen diffferent spatial reference systems. We can look the embedded CRS in the raster file with teh <code>crs()</code> function from <strong>raster</strong> package.</p>
+<pre class="sourceCode r"><code class="sourceCode r">lt.bath <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">crs</span>()</code></pre>
+<pre><code>## CRS arguments:
+##  +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0</code></pre>
+<p>We notice that the raster file is projected in Word Geodetic System of 1984 (WGS84). In summary the projection <code>+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0</code> tell us as follows:</p>
+<ul>
+<li><code>proj=longlat</code>: the projectionis in longitude and latitude decimal degrees</li>
+<li><code>datum=WGS84</code>: the datum is WGS84 and it referes to the 0,0 refereence for the coordinate system used in the projection</li>
+<li><code>ellps=WGS84</code>: the ellipsoidd—how the earth’s roundness is calculated for the data is WGS84</li>
+</ul>
+</div>
+<div id="dealing-with-missing-data-in-raster" class="section level3">
+<h3><span class="header-section-number">2.1.5</span> Dealing with missing data in raster</h3>
+<p>Raster data often has <code>NoData</code> value to represent the absence of data. This is a value assigned to pixels where data is missing or absent. The raster comes with a ract1 contain both the elevation and bathmetry information. But if you want to plot area contour from the coastline offshore, you will need to remove elevation information and this is when you assign the elevation pixel with the <code>NoData</code> value.</p>
+<p>The values that is conventionally used to represent missing data varies by ther raster data type. For example, for floating points rasters, the figure <code>-3.4e+38</code> is commonly used while for integers a figure <code>-9999</code> is common. However, when raster are imported,
+R assigns these missing cell with <code>NA</code>.</p>
+<pre class="sourceCode r"><code class="sourceCode r">tz.bath =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/GIS/ROADMAP/Etopo 1/Tanzania_etopo1/tanz1_-3432.asc&quot;</span>)
+tz.bath <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summary</span>()</code></pre>
+<pre><code>## Warning in .local(object, ...): summary is an estimate based on a sample of 1e+05 cells (15.22% of all cells)</code></pre>
+<pre><code>##         tanz1_.3432
+## Min.          -4890
+## 1st Qu.       -3515
+## Median         -290
+## 3rd Qu.         614
+## Max.           5637
+## NA&#39;s              0</code></pre>
+</div>
+</div>
+<div id="assign-projection-and-reproject-raster-data-in-r" class="section level2">
+<h2><span class="header-section-number">2.2</span> Assign projection and Reproject Raster Data in R</h2>
+<p>Sometimes we encounter raster datasets that do not “line up” when plotted or analyzed. Rasters that don’t line up are most often in different Coordinate Reference Systems (CRS). This section explains how to deal with rasters in different, known CRSs. It will walk though reprojecting rasters in R using the <code>projectRaster()</code> function in the <strong>raster</strong> package. We can assess the projection of the two raster data we loaded earlier with the <code>crs()</code> function from <strong>raster</strong> package. Let’s begin with the bathmetry raster of Lake Tanganyika</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">crs</span>(lt.bath)</code></pre>
+<pre><code>## CRS arguments:
+##  +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0</code></pre>
+<p>We notice that the bathmetry raster of Lake Tanganyika has defined coordinate reference system—WGS84. let us also check the bathmetry data from the coastal water of Tanzania using the same <code>crs()</code> function.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">crs</span>(tz.bath)</code></pre>
+<pre><code>## CRS arguments: NA</code></pre>
+<p>Unfortunately, the bathmetry raster of coastal water of Tanzania lack the coordinate reference systm—this idicate that the projection is not defined yet. fortunate, raster package has <code>projectRaster()</code> function that allows to reproject raster without defined CRS or reproject a raster from one CRS into another. Since the <code>lt.bath</code> has the projection, we can use its projection to define the missing coordinate system in <code>tz.bath</code> raster file. Because we need to define a projection of the missing raster, we simply use the <code>crs()</code> function to copy the projection of <code>lt.bath</code> into the <code>tz.bath</code> as the code block illustrate</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">crs</span>(tz.bath) =<span class="st"> </span><span class="kw">crs</span>(lt.bath)</code></pre>
+<p>We can check the coordinate of the two files if they are correct</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">crs</span>(tz.bath); <span class="kw">crs</span>(lt.bath)</code></pre>
+<pre><code>## CRS arguments:
+##  +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0</code></pre>
+<pre><code>## CRS arguments:
+##  +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0</code></pre>
+<p>Since we know that the coastal water of Tanzania lies at zone 37 south, we can simply assign the appropriate projection and then transform the bathmetry from WGS84 to UTM zone 37 south. Since we know the text of the zone, let us define it</p>
+<pre class="sourceCode r"><code class="sourceCode r">    tzutm =<span class="st"> &quot;+proj=utm +zone=37 +south +datum=WGS84 +units=m +no_defs&quot;</span></code></pre>
+<p>We then use the <code>projectExtent()</code> function to transform the CRS from WGS84 to UTM Zone 37 south</p>
+<pre class="sourceCode r"><code class="sourceCode r">tz.bath.utm =<span class="st"> </span><span class="kw">projectExtent</span>(tz.bath, tzutm)</code></pre>
+<p>Then check the files projections. Instead of using the <code>crs()</code> to assess the type of projection, we use the <code>projection()</code> function instead.</p>
+<pre class="sourceCode r"><code class="sourceCode r">tz.bath <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">projection</span>(<span class="dt">asText =</span> F); tz.bath.utm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">projection</span>(<span class="dt">asText =</span> F)</code></pre>
+<pre><code>## CRS arguments:
+##  +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0</code></pre>
+<pre><code>## CRS arguments:
+##  +proj=utm +zone=37 +south +datum=WGS84 +units=m +no_defs
+## +ellps=WGS84 +towgs84=0,0,0</code></pre>
+</div>
+<div id="raster-resolution" class="section level2">
+<h2><span class="header-section-number">2.3</span> Raster resolution</h2>
+<p>Let’s next have a look at the resolution of reprojected <code>tz.bath.utm</code> and the <code>tz.bath</code> files.</p>
+<pre class="sourceCode r"><code class="sourceCode r">tz.bath.utm <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">res</span>();tz.bath <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">res</span>()</code></pre>
+<pre><code>## [1] 1859.258 1860.036</code></pre>
+<pre><code>## [1] 0.01666667 0.01666667</code></pre>
+<p>We notice that the horizontal resolution of projected utm <code>tz.bath.utm</code> file is given in meters of 1859.258 by 1860.036. But the the wgs84 <code>tz.bath</code> is given in degree of 0.01666667 by 0.01666667. Therefore, depending on how you intend to use the raster in analysis and mapping, you will find yourself resonate between geographical coordianate system (WGS) and Universal Transeverse Mercator (UTM). The former is in degree while the later is in meters.</p>
+</div>
+<div id="raster-calculation" class="section level2">
+<h2><span class="header-section-number">2.4</span> Raster Calculation</h2>
+<p>Often times we want to perform calculations on two or more rasters to create a new output raster. For example, if we are interested in mapping the heights of trees across an entire field site, we might want to calculate the difference between the Digital Surface Model (DSM, tops of trees) and the Digital Terrain Model (DTM, ground level). The resulting dataset is referred to as a Canopy Height Model (CHM) and represents the actual height of trees, buildings, etc. with the influence of ground elevation removed.</p>
+</div>
+<div id="multi-bands-satellite-imagery" class="section level2">
+<h2><span class="header-section-number">2.5</span> Multi-bands satellite imagery</h2>
+<p>High resolution digital globe multispectral image. Let us explore the image first</p>
+<pre class="sourceCode r"><code class="sourceCode r">rgdal<span class="op">::</span><span class="kw">GDALinfo</span>(<span class="st">&quot;e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF&quot;</span>)</code></pre>
+<pre><code>## rows        5013 
+## columns     2340 
+## bands       8 
+## lower left origin.x        431076 
+## lower left origin.y        7020086 
+## res.x       2 
+## res.y       2 
+## ysign       -1 
+## oblique.x   0 
+## oblique.y   0 
+## driver      GTiff 
+## projection  +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs 
+## file        e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## apparent band summary:
+##   GDType hasNoDataValue NoDataValue blockSize1 blockSize2
+## 1 UInt16          FALSE           0        224       2340
+## 2 UInt16          FALSE           0        224       2340
+## 3 UInt16          FALSE           0        224       2340
+## 4 UInt16          FALSE           0        224       2340
+## 5 UInt16          FALSE           0        224       2340
+## 6 UInt16          FALSE           0        224       2340
+## 7 UInt16          FALSE           0        224       2340
+## 8 UInt16          FALSE           0        224       2340
+## apparent band statistics:
+##   Bmin Bmax    Bmean        Bsd
+## 1  214 1012 241.0628   6.579988
+## 2  172 1235 203.5383  11.027946
+## 3  170 2047 240.6267  24.320807
+## 4  101 2047 212.6599  37.599717
+## 5   49 1528 128.3042  32.559744
+## 6  100 2047 306.6574  67.605365
+## 7   56 1729 353.3486 106.036615
+## 8   32 1723 333.0844  98.604913
+## Metadata:
+## AREA_OR_POINT=Area 
+## TIFFTAG_COPYRIGHT=(C) COPYRIGHT 2014 DigitalGlobe, Inc., Longmont CO USA 80503 
+## TIFFTAG_DATETIME=2014:08:19 12:17:12 
+## TIFFTAG_IMAGEDESCRIPTION={
+##   bandList = 
+##   [
+##     6;
+##     2;
+##     3;
+##     7;
+##     4;
+##     8;
+##     5;
+##     9;
+##   ]
+## } 
+## TIFFTAG_MAXSAMPLEVALUE=2047 
+## TIFFTAG_MINSAMPLEVALUE=0</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">dg =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF&quot;</span>)</code></pre>
+<p>When we explore the raster file, it tell that the class is raster layer and it has eight bands with spatial resolution of 2 meters.</p>
+<pre class="sourceCode r"><code class="sourceCode r">dg</code></pre>
+<pre><code>## class       : RasterLayer 
+## band        : 1  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001 
+## values      : 214, 1012  (min, max)</code></pre>
+<p>Check for geographical coordinate system</p>
+<pre class="sourceCode r"><code class="sourceCode r">dg <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">projection</span>()</code></pre>
+<pre><code>## [1] &quot;+proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0&quot;</code></pre>
+<p>check for the resolution</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">res</span>(dg)</code></pre>
+<pre><code>## [1] 2 2</code></pre>
+<div id="rater-stacks" class="section level3">
+<h3><span class="header-section-number">2.5.1</span> Rater Stacks</h3>
+<p>The multi-bands raster in R are handled easily with the <code>stack()</code> function, which bling all bands of multi-band raster</p>
+<pre class="sourceCode r"><code class="sourceCode r">dg.bands =<span class="st"> </span><span class="kw">stack</span>(<span class="st">&quot;e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF&quot;</span>)</code></pre>
+<p>We then preview the attributes embedded in the stacked raster object</p>
+<pre class="sourceCode r"><code class="sourceCode r">dg.bands</code></pre>
+<pre><code>## class       : RasterStack 
+## dimensions  : 5013, 2340, 11730420, 8  (nrow, ncol, ncell, nlayers)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## names       : X14AUG190//_01_P001.1, X14AUG190//_01_P001.2, X14AUG190//_01_P001.3, X14AUG190//_01_P001.4, X14AUG190//_01_P001.5, X14AUG190//_01_P001.6, X14AUG190//_01_P001.7, X14AUG190//_01_P001.8 
+## min values  :                   214,                   172,                   170,                   101,                    49,                   100,                    56,                    32 
+## max values  :                  1012,                  1235,                  2047,                  2047,                  1528,                  2047,                  1729,                  1723</code></pre>
+<p>We can view the attributes of each band in the stack with a single output using the <code>$</code> operator and call the layer</p>
+<pre class="sourceCode r"><code class="sourceCode r">dg.bands<span class="op">@</span>layers</code></pre>
+<pre><code>## [[1]]
+## class       : RasterLayer 
+## band        : 1  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001.1 
+## values      : 214, 1012  (min, max)
+## 
+## 
+## [[2]]
+## class       : RasterLayer 
+## band        : 2  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001.2 
+## values      : 172, 1235  (min, max)
+## 
+## 
+## [[3]]
+## class       : RasterLayer 
+## band        : 3  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001.3 
+## values      : 170, 2047  (min, max)
+## 
+## 
+## [[4]]
+## class       : RasterLayer 
+## band        : 4  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001.4 
+## values      : 101, 2047  (min, max)
+## 
+## 
+## [[5]]
+## class       : RasterLayer 
+## band        : 5  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001.5 
+## values      : 49, 1528  (min, max)
+## 
+## 
+## [[6]]
+## class       : RasterLayer 
+## band        : 6  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001.6 
+## values      : 100, 2047  (min, max)
+## 
+## 
+## [[7]]
+## class       : RasterLayer 
+## band        : 7  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001.7 
+## values      : 56, 1729  (min, max)
+## 
+## 
+## [[8]]
+## class       : RasterLayer 
+## band        : 8  (of  8  bands)
+## dimensions  : 5013, 2340, 11730420  (nrow, ncol, ncell)
+## resolution  : 2, 2  (x, y)
+## extent      : 431076, 435756, 7020086, 7030112  (xmin, xmax, ymin, ymax)
+## coord. ref. : +proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+## data source : e:/GIS/trevor/053575070010_01/053575070010_01_P001_MUL/14AUG19082006-M2AS-053575070010_01_P001.TIF 
+## names       : X14AUG19082006.M2AS.053575070010_01_P001.8 
+## values      : 32, 1723  (min, max)</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotRGB</span>(dg.bands, <span class="dt">r =</span> <span class="dv">3</span>, <span class="dt">g =</span> <span class="dv">2</span>, <span class="dt">b =</span> <span class="dv">1</span>, <span class="dt">scale =</span> <span class="dv">800</span>, <span class="dt">stretch =</span> <span class="st">&quot;hist&quot;</span>)</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<pre class="sourceCode r"><code class="sourceCode r">b1 =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B1.tif&quot;</span>)
+b2 =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B2.tif&quot;</span>)
+b3 =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B3.tif&quot;</span>)
+b4 =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B4.tif&quot;</span>)
+b5 =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B5.tif&quot;</span>)
+b6 =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B6.tif&quot;</span>)
+b7 =<span class="st"> </span><span class="kw">raster</span>(<span class="st">&quot;e:/bookdown/spatil_r/landsat_clip_2014/clip_LC81660652014164LGN00_B7.tif&quot;</span>)</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">stack</span>(b1, b2, b3) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">plotRGB</span>(<span class="dt">r =</span> <span class="dv">3</span>, <span class="dt">g =</span> <span class="dv">2</span>, <span class="dt">b =</span> <span class="dv">1</span>, <span class="dt">scale =</span> <span class="ot">TRUE</span>)</code></pre>
+</div>
+</div>
+<div id="manipulate-raster" class="section level2">
+<h2><span class="header-section-number">2.6</span> Manipulate raster</h2>
+</div>
+<div id="raster-time-series-data" class="section level2">
+<h2><span class="header-section-number">2.7</span> Raster time series data</h2>
+</div>
+<div id="comparing-ndvi-from-two-different-sites" class="section level2">
+<h2><span class="header-section-number">2.8</span> comparing NDVI from Two different sites</h2>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-tidyverse">
+<p>Wickham, Hadley. 2017. <em>Tidyverse: Easily Install and Load the ’Tidyverse’</em>. <a href="https://CRAN.R-project.org/package=tidyverse">https://CRAN.R-project.org/package=tidyverse</a>.</p>
+</div>
+<div id="ref-ggplot">
+<p>Wickham, Hadley. 2016. <em>Ggplot2: Elegant Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.</p>
+</div>
+<div id="ref-dplyr">
+<p>Wickham, Hadley, Romain François, Lionel Henry, and Kirill Müller. 2019. <em>Dplyr: A Grammar of Data Manipulation</em>. <a href="https://CRAN.R-project.org/package=dplyr">https://CRAN.R-project.org/package=dplyr</a>.</p>
+</div>
+<div id="ref-raster">
+<p>Hijmans, Robert J. 2019. <em>Raster: Geographic Data Analysis and Modeling</em>. <a href="https://CRAN.R-project.org/package=raster">https://CRAN.R-project.org/package=raster</a>.</p>
+</div>
+<div id="ref-sp">
+<p>Bivand, Roger S., Edzer Pebesma, and Virgilio Gomez-Rubio. 2013. <em>Applied Spatial Data Analysis with R, Second Edition</em>. Springer, NY. <a href="http://www.asdar-book.org/">http://www.asdar-book.org/</a>.</p>
+</div>
+<div id="ref-sf">
+<p>Pebesma, Edzer. 2018. “Simple Features for R: Standardized Support for Spatial Vector Data.” <em>The R Journal</em>. <a href="https://journal.r-project.org/archive/2018/RJ-2018-009/index.html">https://journal.r-project.org/archive/2018/RJ-2018-009/index.html</a>.</p>
+</div>
+<div id="ref-rgdal">
+<p>Bivand, Roger, Tim Keitt, and Barry Rowlingson. 2019. <em>Rgdal: Bindings for the ’Geospatial’ Data Abstraction Library</em>. <a href="https://CRAN.R-project.org/package=rgdal">https://CRAN.R-project.org/package=rgdal</a>.</p>
+</div>
+<div id="ref-wiki2">
+<p>“Lake Tanyanyika.” n.d. <a href="https://en.m.wikipedia.org/wiki/Lake_Tangnyika">https://en.m.wikipedia.org/wiki/Lake_Tangnyika</a>.</p>
+</div>
+<div id="ref-wiki1">
+<p>“Coordinate Reference System.” n.d. <a href="https://en.m.wikipedia.org/wiki/Spatial_reference_system">https://en.m.wikipedia.org/wiki/Spatial_reference_system</a>.</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="intro.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="rasterv.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"google": false,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"download": ["spatil_r.pdf", "spatil_r.epub", "spatil_r.mobi"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(src))
+      src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

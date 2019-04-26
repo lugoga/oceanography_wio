@@ -1,0 +1,59 @@
+# Index
+
+## R
+
+## Rmarkdown
+
+## Bookdown
+
+## Pandoc
+
+
+
+
+## WOA for Nyamisi manuscript
+I processed the WOA atlas data to capture chemical properties of profiles within the Mafia kimbiji area.  Here is the code for reading the file
+```{r}
+aa = read_table2("e:/MatlabWorking/WOA/WOA09_meridional_sections_every_10_degrees/WOA09_lon_40.5.jos")
+
+ab = aa %>% filter(Lat > -8 & Lat < -6) %>% 
+  select(-c(Section, STATION)) %>% 
+  gather(key = "variables", value = "value", 4:9) %>% 
+  rename(lat = Lat, lon = Long, pressure = PRES)
+
+ab$lat = as.factor(ab$lat)
+```
+
+The figure below show the profiles at latitude 6.5 and 7.5
+```{r}
+ggplot(data = ab %>% filter(variables %in% c("NO3", "PO4", "SIO3")), aes(x = value, y = pressure, col = lat))+
+  geom_path(show.legend = TRUE)+
+  scale_y_reverse()+
+  scale_x_continuous(position = "top")+
+  cowplot::theme_cowplot()+
+  facet_wrap(~variables, scales = "free", nrow = 1)
+```
+
+## Producing Maps programatically
+Current solutions for creating maps usually involves GIS software such as ArcGIS and QGIS, which allows to visually prepare a map in the same approach as one would prepare a poster or a doument layout. On the ohter hand, R, a free and open source software development environment (IDE) thaat is used tfor computing statical data and producing graphics in a programming language, has developed advanced spatial capabilies over the years, and can be used to draw maps programatically. 
+
+R is a powerful and flexible tool. R can be used from calculating data sets and present the result of the analysis in plots or maps. R is also free and accessible to everyone. R is an interactive and scripting language that allows the user to write out codes in which it will execute the commands specified. 
+
+```{r}
+stations = data.frame(lon = c(40.2, 43.8), lat = c(-6.1, -7.3)) %>% 
+  st_as_sf(coords = c("lon", "lat")) %>% st_set_crs(4326)
+
+ggplot() +
+  geom_sf(data = stations, size = 5)+
+  coord_sf(xlim = c(40, 44), ylim = c(-6.0, -7.4))+
+  ggspatial::annotation_scale(location = "bl", width_hint = 0.4) +
+  ggspatial::annotation_north_arrow(location = "bt", which_north = "true",
+        pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"))
+
+
+# +
+#     annotation_scale() +
+
+```
+
+

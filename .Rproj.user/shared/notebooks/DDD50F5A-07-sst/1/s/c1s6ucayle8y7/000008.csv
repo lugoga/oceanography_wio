@@ -1,0 +1,6 @@
+"0","air.temp.clim = air.temp.tb %>% "
+"0","  group_by(lon,lat) %>% "
+"0","  summarise(temperature = mean(temperature, na.rm = TRUE))"
+"0",""
+"0","Lat = air.temp.clim$lat %>% unique()"
+"0",""

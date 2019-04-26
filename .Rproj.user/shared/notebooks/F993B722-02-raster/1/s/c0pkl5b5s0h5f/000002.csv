@@ -1,0 +1,8 @@
+"0","tz.bath %>% projection(asText = F); tz.bath.utm %>% projection(asText = F)
+"
+"1","CRS arguments:
+ +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 
+"
+"1","CRS arguments:
+ +proj=utm +zone=37 +south +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0 
+"

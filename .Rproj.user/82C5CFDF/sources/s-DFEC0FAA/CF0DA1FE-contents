@@ -1,0 +1,12 @@
+# Ocean productivity
+
+
+```{r}
+require(xtractomatic)
+```
+
+
+```{r}
+datasets = searchData("datasetname:mday")
+```
+

@@ -1,0 +1,463 @@
+# Making Maps {#graphics}
+
+## Introduction
+Now that you understand vector and raster data model in spatial context, you need to communicate your understanding to others. A satisfying and important aspect of geographic research is communicating the results. To help others quickly build up a good mental model of the spatial data, you will need to invest considerable effort in making your maps as self-explanatory as possible. In this chapter, you’ll learn some of the tools that **ggplot2** provides to make elegand maps and graphics [@ggplot]. 
+
+R has several systems for making graphs, but **ggplot2** is one of the most elegant and most versatile. **ggplot2** implements the *grammar of graphics*, a coherent system for describing and building graphs. The chapter also introduce you to some  extended functionalities from **sf** [@sf], **cowplot** [@cowplot], **ggsn** [@ggsn], **ggsci** [@ggsci], **metR** [@metr], **ggrepel** [@ggrepel], **gganimate** [@gganimate] and **egg** [@egg] packages. Therefore, this chapter focuses on the tools you need to create good graphics. Rather than loading those extensions here, we’ll refer to their functions explicitly, using the `::` notation. This will help make it clear which functions are built into **ggplot2**, and which come from other packages. Ensure you have these packages in your machine, otherwise install them with `install.packages()` if you don’t already have them.
+
+```{r}
+require(tidyverse)
+```
+
+
+Let us make a map showing contour off--Kimbiji located between longitude `r LonLabel(38.5)` and `r LonLabel(40.1)` and latitude `r LatLabel(-7.2)` and `r LatLabel(-6.0). We need to create map of figure \@ref(fig:fig50), which was created with **ggplot2**. But, we will go step by step until we arrive to to an elegant map like figure \@ref(fig:fig50).
+
+
+```{r fig50, fig.cap="Map of Off-Kimbiji showing contour lines. The grey lines are contour at 50 m interval and the black line are contoured at 200 m intervals", echo=FALSE}
+
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+
+### The bathmetry data
+**ggplot2** works with data that are tidy---data frame arranged in such way that observations are in rows and variables are in columns and each value must have its own cell. But, the bathmetry data is from ETOPO1 and came as `.asc`. We first read the file with the `raster::raster()` function.` Once the raster is in the worksapce, we use the `raster::as.data.frame(xy = TRUE)` and supply the `xy = TRUE` argument to convert raster object to data frame. We then tidy the data frame with rename() and mutate() and filter() function
+
+```{r}
+## read the ascii file
+tz.bath = raster::raster("e:/GIS/ROADMAP/Etopo 1/Tanzania_etopo1/tanz1_-3432.asc")
+
+## convert raster to data frame
+tz.bath.df = tz.bath %>% 
+  raster::as.data.frame(xy = TRUE) %>%
+  dplyr::as_tibble()
+
+## rename the variable
+tz.bath.df = tz.bath.df %>% 
+  dplyr::rename(lon = x, lat = y, depth = 3)%>% 
+  dplyr::mutate(depth = as.integer(depth))
+
+## chop the area of interest 
+off.kimbiji = tz.bath.df %>% 
+  dplyr::filter(lon > 38.5 & lon < 40 & 
+           lat > -7.2 & lat < - 6 & 
+           depth > -1200& depth < 0  )
+
+```
+
+The bathmetry file now contain three variables, the `lon`, `lat` and `depth` (Table \@ref(tab:tab51))
+
+```{r tab51}
+off.kimbiji %>%
+  dplyr::sample_n(5) %>%
+  knitr::kable(col.names = c("Longitude", "Latitude", "Depth (meters)"), digits = 3,
+               caption = "The rectangular data frame consist of bathmetry of Kimbiji")%>%
+  kableExtra::column_spec(column = 3, width = "3cm")
+
+
+```
+
+We also need basemap---country boundary layer. We use the st_read() function from **sf** package to read the shapefile boundary layer. Since the layer is for Africa, we use the st_crop() function to chop the area of interest. this is important as it reduce processing time
+
+```{r}
+africa = st_read("e:/GIS/Tanzania spatial data Bank/EAF14 Tanzania spatial datasets/africa/Spatial/AdmInfr/afcntry.shp")
+
+kimbiji = africa %>% st_crop(xmin = 38.0, xmax = 40.5, ymin = -8, ymax = -5.5)
+```
+
+
+## Creating a ggplot
+To plot the contour map, run this code to put lon on the x--axis and lat on the y--axis
+
+```{r fig51, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))
+```
+
+Figure \@ref(fig:fig51) shows bathmetry presented as contour lines. With ggplot2, you can begin a plot with the function `ggplot()`, which create a coordinate system that you can add layers to. The first arguments of `ggplot()` is the dataset to use in plot. So `ggplot(data = off.kimbiji)` creates an empty plot. You complete the graph by adding one or more layers to the `ggplot()`. The `geom_contour()` adds a layer of contour lines. **ggplot2** comes with many *geom* that each add a different type of layer to a plot. Each geom function in **ggplot2** takes a mapping argument, which defines how variable in your dataset are mapped. The `mapping` argument is always paired with `aes()`, and the `x` and `y` arguments of `aes()` specify which variable to map on the `x` and `y` axes. **ggplot*2* looks for the mapped variables in the data argument, in this case the off-kimbiji.
+
+### Label
+Graph need good label, we can improve figure \@ref(fig:fig51) by adding label on the map with the `labs()` function.This example adds a title to figure \@ref(fig:fig52)
+
+```{r fig52, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji")
+```
+
+The labs() function also allows you to add x and y labels as in figure \@ref(fig:fig53)
+
+```{r fig53, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude")
+```
+
+### Annotations
+In addition to `labs()` function that allows to easy place label on map, **ggplot2** has a `geom_text()` function, which allows to add textual label on the plots. Similar to `geom_point()` function that has x and y argument, but the `geom_text()` has additional argument--- `label`. This function is useful especially if you want to place station name on the map or plot. The function requires the data in form of data frame. Therefore we first create a data frame that contains lon, lat and site using the `tibble()` function. The chunk below illustrates the use of `geom_point()` and `geom_text()` as was used to make figure \@ref(fig:fig54)
+
+
+```{r fig54, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+## make data frame of three stations
+stations = tibble(lon = c(39.5, 39.7, 39.5), 
+                      lat = c(-7.1, -6.75, -6.25), 
+                      site = paste("st",101:103, sep = ""))
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude")+
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  geom_text(data = stations, aes(x = lon, y = lat, label = site))
+```
+
+Although the `geom_text()` does the right thing of placing the textual label on plot or maps, it requires some adjustment to make the label on the right position and not on top of a point and **ggplot2** provides those tools. Alternatively, you can use an extended `ggrepel::geom_text_repel()` function from **ggrepel** package [@ggrepel]. geom_text_repel()` function place the label in the right position and requires no addition tweeking as the label in figure \@ref(fig:fig55). 
+
+```{r fig55, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude")+
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site))
+```
+
+Unfortunate, neither `geom_text()` nor `ggrepel::geom_text_repel()` work with label that are not in the data frame. In that situation, you can use the `annoation()` function that does the job. The code below was used to make figure \@ref(fig:fig56) 
+
+```{r fig56, fig.cap="Contour lines of coastal water off-Kimbiji"}
+
+ggplot(data = off.kimbiji)+
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude")+
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site))+
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")
+```
+
+### Scales
+The other useful functions for making plot that help communicate clearly are scales. Although **ggplot2** does the scaling for you, but sometimes you may need to adjust the mapping from the data values to make a plot or map more appealing (figure \@ref(fig:fig57) ). 
+
+```{r fig57, fig.cap="Contour lines of coastal water off-Kimbiji. adding scales automatic"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+  scale_x_continuous() +
+  scale_y_continuous() 
+
+```
+
+You can adjust the these scales to your preference as in figure \@ref(fig:fig58). Most scales have `breaks` and `labels` as primary arguments. 
+
+```{r fig58, fig.cap="Contour lines of coastal water off-Kimbiji. Adjust scales automatic"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+  scale_x_continuous(breaks = seq(39.35,39.95, length.out = 4)) +
+  scale_y_continuous(breaks = seq(-7.15, -6.15, length.out = 4), 
+                     labels = c(-7.15, -6.81, -6.48, -6.15)) 
+
+```
+
+For inset maps scales are often supressed. This is easily done in the scale by assigning `labels = NULL`. The chunk block below demonstrate the axis label suppresion that was used to make figure \@ref(fig:fig59)
+
+```{r fig59, fig.cap="Contour lines of coastal water off-Kimbiji. Adjust scales and supress the labels"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+  scale_x_continuous(breaks = seq(39.35,39.95, length.out = 4), 
+                     labels = NULL) +
+  scale_y_continuous(breaks = seq(-7.15, -6.15, length.out = 4), 
+                     labels = NULL) 
+
+```
+
+###Themes
+Themes in ggplot2 control the non-data parts of the plot. There quiet number of themes in ggplot2 and extended ones from **ggthemes** package [@ggthemes]. `themes` are widely and can be used to control legend  position with `legend.position` arguments. They also control the display. For more information about the themes I recommend you taking time to read [chapter 28 of the book titled R for data science](https://r4ds.had.co.nz/graphics-for-communication.html) written by Hadley Wickham. 
+
+### Zooming
+Although you may have the region extent of your data, but often times you may wish to adjust the plotted area to your interest. If you want to achieve an equal dize of x- and y-axis, then add the `coord_equal()` function as layer on the `ggplot()`. The code in the chunk below was used to make figure \@ref(fig:fig510)
+
+```{r fig510, fig.cap="Contour lines of coastal water off-Kimbiji. Equal zooming"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+ scale_x_continuous(breaks = seq(39.35,39.95, length.out = 4)) +
+  scale_y_continuous(breaks = seq(-7.15, -6.15, length.out = 4), 
+                     labels = c(-7.15, -6.81, -6.48, -6.15)) +
+  coord_equal()
+
+```
+
+However, close look of figure \@ref(fig:fig59) clearly show that the contour lines do not cross the plot margin. This requires zooming further inside of the ploting area. The function `coord_cartesion()` can adjust the zooming. This function allows you to set the limits of x-axis with `xlim` and y-axis with `ylim` arguments. Figure \@ref(fig:fig511)  was generated using the chunk below, which control the limits of the axis. 
+
+```{r fig511, fig.cap="Contour lines of coastal water off-Kimbiji. Specify zooming"}
+
+ggplot(data = off.kimbiji) +
+  geom_contour(mapping = aes(x = lon, y = lat, z = depth))+
+  labs(title = "Contour lines off Kimbiji", x = "Longitude", y = "Latitude") +
+  geom_point(data = stations, aes(x = lon, y = lat))+
+  ggrepel::geom_text_repel(data = stations, aes(x = lon, y = lat, label = site)) +
+  annotate(geom = "text", x = 39.6, y = -6.65, label = "INDIAN OCEAN")+
+ scale_x_continuous(breaks = seq(39.35,39.95, length.out = 4)) +
+  scale_y_continuous(breaks = seq(-7.15, -6.15, length.out = 4), 
+                     labels = c(-7.15, -6.81, -6.48, -6.15)) +
+  coord_cartesian(xlim = c(39.34, 39.95), ylim = c(-7.15, -6.15))
+
+```
+
+Now after the abbove illustration that teach you the key functions **ggplot2** offers for making elegant plots and maps, you can use the following code chunk to make figure \@ref(fig:fig50). I will explain each line in the chunk. As before, you start plotting with **ggplot2** with the `ggplot()` function. The second line of gode add a simple feature with a `geom_sf()` function from **sf** package. When mapping with `geom_sf()` function in **ggplot2** package, you are advised to leave the `ggplot()` function empty. This will allow the geom_sf() to label the axes with the appropriate geographical labelling for longitude and latitude.  Note however, I have instructed the `geom_sf()` to fill the boundary layer with grey of  90 shade and the stroke with black coloou.
+
+```{r}
+
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")
+```
+
+note that **ggplot2** plot the map with default aesthetic settings. The plot background is filled with gray color and without stroke but the grids are white colored. The third line add the contour lines spaced at 50 meter intervals. Instead of using `geom_contour()` from ggplot2, the `geom_contour2()` from **metR** package was used. They both serve the same task. 
+
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")
+```
+
+Like the third line, the fourth line add contour lines, but instead of spacing them into  meters, these are spaced at 200 meters interval and are black in color.
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)
+```
+
+The fifth line add the label on contour spaced at 200 meter interval with `geom_text_contour()` function from **metR** package. Here is where you will find the useful of package like **metR** that extends the **ggplot2**, for which the current version (2.3.1.1) is unable.  
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)
+```
+
+The sixth line zoom the map to only the geographical extent we are interested with using the `coord_sf()` function from **sf** package. We could also use the `coord_cartesin()` to limit the area. 
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))
+ 
+```
+
+We got a glimpse of the map now, let us use theme to make some changes. The background was set to white with `panel.background = element_rect(fill = "white")`, and removed grids with  ` panel.grid = element_line(colour = NA)` and change the font size of the axis label to 11 points with `axis.text = element_text(size = 11)`. The `theme_bw()` just set the border of the plot to black with solid line.  
+
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))
+  
+```
+
+By increasing the font size of axis textual label to 11, the axes are cluttered. adding the scale can improve the labelling. `scale_x_continuous(breaks = seq(39.2, 39.8, .2))` in line 9 force ggplot2 to label the x--axis four letter that are spaced with 0.2 latitude and `scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))` in line 10 label four digits of longitude. 
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))
+  
+```
+
+Because the axes are abbreviated with longitude and latitude symbol, line 11 in the code remove the axes title label. Line 12 to 14 add textual label on the map with the `annotate()` function. 
+
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")
+```
+
+The last line of our code add the legend on the map using the `scalebar()` function from **ggsn** package [@ggsn]. In a nutshell, making this map using ggplot2 and ancillary extensions used fiften line codes and hundred of arguments. 
+
+```{r}
+ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")+
+  ggsn::scalebar(location = "bottomleft", x.min = 39.2, x.max = 39.8, 
+                 y.min = -6.98, y.max = -6.35, dist = 15, dist_unit = "km", 
+                 transform = TRUE, model = "WGS84", st.dist = 0.03, st.size = 4,
+                 height = 0.03)
+```
+
+
+## Inset maps
+An inset map is a smaller map rendered within or next to the main map. It could serve many different purposes, including showing the relative position of the study area in regional area. In figure \@ref(fig:fig512) is the map showing the contour interval off-kimbiji, Tanzania. The inset map show the area of Kimbiji in the Western Indian Ocean Region. The chunk below was used to create figure \@ref(fig:fig512). In a nutshell, we assign the study area map as `main.map` and the regional map as `inset.map` and then we used function from the **cowplot** package to combine the two maps. 
+
+```{r fig512, fig.height=5, fig.cap="The main map with the inset map showing the positon of the study areas in the region"}
+
+main.map = ggplot()+
+  geom_sf(data = kimbiji, fill = "grey90", col = "grey40")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 50, col = "grey")+
+  metR::geom_contour2(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), binwidth = 200)+
+  metR::geom_text_contour(data = off.kimbiji, 
+               aes(x = lon, y = lat, z=depth), 
+               binwidth = 200, rotate = FALSE)+
+  coord_sf(xlim = c(39.2, 39.8), ylim = c(-7, -6.3))+
+  theme_bw()+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_line(colour = NA),
+        axis.text = element_text(size = 11))+
+  scale_x_continuous(breaks = seq(39.2, 39.8, .2))+
+  scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))+
+  labs(x = NULL, y = NULL)+
+  annotate(geom = "text", x = 39.28, y = -6.48, label = "Zanzibar \nChannel")+
+  annotate(geom = "text", x = 39.5, y = -6.37, label = "Unguja \nIsland")+
+  annotate(geom = "text", x = 39.3, y = -6.91, label = "Dar es Salaam")+
+  ggsn::scalebar(location = "bottomleft", x.min = 39.2, x.max = 39.8, 
+                 y.min = -6.98, y.max = -6.35, dist = 15, dist_unit = "km", 
+                 transform = TRUE, model = "WGS84", st.dist = 0.03, st.size = 4,
+                 height = 0.03)
+
+world = spData::world
+aoi = data.frame(lon = c(38.5, 40, 40, 38.5, 38.5), 
+                 lat = c(-8, -8, -6, -6, -8))
+
+inset.map = ggplot()+
+  geom_sf(data = world, fill = "grey90", col = 1)+
+  coord_sf(xlim = c(37, 45), ylim = c(-12,-1))+
+  geom_path(data = aoi, aes(x = lon, y = lat), size = 1.2)+
+  theme_bw()+
+  theme(plot.background = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(), panel.grid = element_line(colour = "white")) +
+  labs(x = NULL, y = NULL)
+
+cowplot::ggdraw()+
+  cowplot::draw_plot(plot = main.map, x = 0, y = 0, width = 1, height = 1, scale = 1)+
+  cowplot::draw_plot(plot = inset.map, x = .558, y = .05, width = .3,height = .3)
+```
+
+
+
+## Static Maps
+Static maps are the most common type of visual output from spatial objects. Fixed images for printed outputs, common formats for static maps include .`png` and `.pd`f, for raster and vector outputs, respectively. Initially static maps were the only type of map that R could produce. Things have advanced greatly since `sp` was released (see @sp). Many new techniques for map making have been developed since then. However, a decade later static plotting was still the emphasis of geographic data visualisation in R (Cheshire and Lovelace 2015).
+
+Despite the innovation of interactive mapping in R, static maps are still the foundation of mapping in R. The base `plot()` function is often the fastest way to create static maps from vector and raster spatial objects. Sometimes simplicity and speed are priorities, especially during the development phase of a project, and this is where `plot()` excels. The base R approach is also extensible, with `plot()` offering dozens of arguments. Another low-level approach is the **grid** package, which provides functions for low-level control of graphical outputs. This section, however, focus on how to make static maps with **ggplot2**, emphasizing the important aesthetic and layout options.
+
+
+
+### Map elements
+The good thing to start making maps is with an understanding of the map elements. A static map can be composed of many different map elements. These include `main map body`, `legend`, `title`, `scale indicator`, `orientation indicator`, `inset map` and `source` or `ancillary` information.
+
+
+The easiest place to start when turning an exploratory graphic into an expository graphic is with good labels. You add labels with the labs() function. This example adds a plot title:
+
+
+## Animated maps
+
+## Interactive maps

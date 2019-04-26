@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Chapter 5 Making Maps | A glimpse of GIS and Remote Sensing with R</title>
+  <meta name="description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R">
+  <meta name="generator" content="bookdown  and GitBook 2.6.7">
+
+  <meta property="og:title" content="Chapter 5 Making Maps | A glimpse of GIS and Remote Sensing with R" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 5 Making Maps | A glimpse of GIS and Remote Sensing with R" />
+  
+  <meta name="twitter:description" content="Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R" />
+  
+
+<meta name="author" content="Masumbuko Semba">
+
+
+<meta name="date" content="2019-04-21">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  
+<link rel="prev" href="vector.html">
+<link rel="next" href="final-words.html">
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+
+
+
+
+
+
+
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+
+
+<style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">A glimpse of GIS and Remote Sensing with R</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Prerequisites</a></li>
+<li class="chapter" data-level="" data-path="sources.html"><a href="sources.html"><i class="fa fa-check"></i>Sources</a></li>
+<li class="chapter" data-level="1" data-path="intro.html"><a href="intro.html"><i class="fa fa-check"></i><b>1</b> Introduction to Spatial Analysis</a></li>
+<li class="chapter" data-level="2" data-path="raster.html"><a href="raster.html"><i class="fa fa-check"></i><b>2</b> Raster Data</a><ul>
+<li class="chapter" data-level="2.1" data-path="raster.html"><a href="raster.html#introduction-to-raster-data"><i class="fa fa-check"></i><b>2.1</b> Introduction to Raster data</a><ul>
+<li class="chapter" data-level="2.1.1" data-path="raster.html"><a href="raster.html#geotiff"><i class="fa fa-check"></i><b>2.1.1</b> GeoTiff</a></li>
+<li class="chapter" data-level="2.1.2" data-path="raster.html"><a href="raster.html#explore-the-raster-attribute"><i class="fa fa-check"></i><b>2.1.2</b> Explore the raster attribute</a></li>
+<li class="chapter" data-level="2.1.3" data-path="raster.html"><a href="raster.html#read-a-geotiff-raster-data"><i class="fa fa-check"></i><b>2.1.3</b> Read a GeoTIFF raster data</a></li>
+<li class="chapter" data-level="2.1.4" data-path="raster.html"><a href="raster.html#view-raster-coordinate-reference-system"><i class="fa fa-check"></i><b>2.1.4</b> View Raster Coordinate Reference System</a></li>
+<li class="chapter" data-level="2.1.5" data-path="raster.html"><a href="raster.html#dealing-with-missing-data-in-raster"><i class="fa fa-check"></i><b>2.1.5</b> Dealing with missing data in raster</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="raster.html"><a href="raster.html#assign-projection-and-reproject-raster-data-in-r"><i class="fa fa-check"></i><b>2.2</b> Assign projection and Reproject Raster Data in R</a></li>
+<li class="chapter" data-level="2.3" data-path="raster.html"><a href="raster.html#raster-resolution"><i class="fa fa-check"></i><b>2.3</b> Raster resolution</a></li>
+<li class="chapter" data-level="2.4" data-path="raster.html"><a href="raster.html#raster-calculation"><i class="fa fa-check"></i><b>2.4</b> Raster Calculation</a></li>
+<li class="chapter" data-level="2.5" data-path="raster.html"><a href="raster.html#multi-bands-satellite-imagery"><i class="fa fa-check"></i><b>2.5</b> Multi-bands satellite imagery</a><ul>
+<li class="chapter" data-level="2.5.1" data-path="raster.html"><a href="raster.html#rater-stacks"><i class="fa fa-check"></i><b>2.5.1</b> Rater Stacks</a></li>
+</ul></li>
+<li class="chapter" data-level="2.6" data-path="raster.html"><a href="raster.html#manipulate-raster"><i class="fa fa-check"></i><b>2.6</b> Manipulate raster</a></li>
+<li class="chapter" data-level="2.7" data-path="raster.html"><a href="raster.html#raster-time-series-data"><i class="fa fa-check"></i><b>2.7</b> Raster time series data</a></li>
+<li class="chapter" data-level="2.8" data-path="raster.html"><a href="raster.html#comparing-ndvi-from-two-different-sites"><i class="fa fa-check"></i><b>2.8</b> comparing NDVI from Two different sites</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="rasterv.html"><a href="rasterv.html"><i class="fa fa-check"></i><b>3</b> Raster Visualization</a><ul>
+<li class="chapter" data-level="3.1" data-path="rasterv.html"><a href="rasterv.html#visualize-bathmetry-with-ggplot2"><i class="fa fa-check"></i><b>3.1</b> visualize bathmetry with ggplot2</a></li>
+<li class="chapter" data-level="3.2" data-path="rasterv.html"><a href="rasterv.html#convert-data-frame-to-bathmetric-object"><i class="fa fa-check"></i><b>3.2</b> Convert data frame to bathmetric object</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="vector.html"><a href="vector.html"><i class="fa fa-check"></i><b>4</b> Vector Data</a><ul>
+<li class="chapter" data-level="4.1" data-path="vector.html"><a href="vector.html#introduction"><i class="fa fa-check"></i><b>4.1</b> Introduction</a></li>
+<li class="chapter" data-level="4.2" data-path="vector.html"><a href="vector.html#vector-data"><i class="fa fa-check"></i><b>4.2</b> Vector Data</a><ul>
+<li class="chapter" data-level="4.2.1" data-path="vector.html"><a href="vector.html#simple-features"><i class="fa fa-check"></i><b>4.2.1</b> Simple features</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="vector.html"><a href="vector.html#reading-vector-data"><i class="fa fa-check"></i><b>4.3</b> Reading vector data</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="vector.html"><a href="vector.html#reading-shapefiles"><i class="fa fa-check"></i><b>4.3.1</b> Reading shapefiles</a></li>
+<li class="chapter" data-level="4.3.2" data-path="vector.html"><a href="vector.html#reading-gpx-file"><i class="fa fa-check"></i><b>4.3.2</b> Reading GPX file</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="vector.html"><a href="vector.html#make-shapefiles-from-tabular-data"><i class="fa fa-check"></i><b>4.4</b> Make shapefiles from Tabular data</a></li>
+<li class="chapter" data-level="4.5" data-path="vector.html"><a href="vector.html#export-simple-feature-as-shapefile"><i class="fa fa-check"></i><b>4.5</b> Export simple feature as shapefile</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="graphics.html"><a href="graphics.html"><i class="fa fa-check"></i><b>5</b> Making Maps</a><ul>
+<li class="chapter" data-level="5.1" data-path="graphics.html"><a href="graphics.html#introduction-1"><i class="fa fa-check"></i><b>5.1</b> Introduction</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="graphics.html"><a href="graphics.html#the-bathmetry-data"><i class="fa fa-check"></i><b>5.1.1</b> The bathmetry data</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="graphics.html"><a href="graphics.html#creating-a-ggplot"><i class="fa fa-check"></i><b>5.2</b> Creating a ggplot</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="graphics.html"><a href="graphics.html#label"><i class="fa fa-check"></i><b>5.2.1</b> Label</a></li>
+<li class="chapter" data-level="5.2.2" data-path="graphics.html"><a href="graphics.html#annotations"><i class="fa fa-check"></i><b>5.2.2</b> Annotations</a></li>
+<li class="chapter" data-level="5.2.3" data-path="graphics.html"><a href="graphics.html#scales"><i class="fa fa-check"></i><b>5.2.3</b> Scales</a></li>
+<li class="chapter" data-level="5.2.4" data-path="graphics.html"><a href="graphics.html#zooming"><i class="fa fa-check"></i><b>5.2.4</b> Zooming</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="graphics.html"><a href="graphics.html#inset-maps"><i class="fa fa-check"></i><b>5.3</b> Inset maps</a></li>
+<li class="chapter" data-level="5.4" data-path="graphics.html"><a href="graphics.html#static-maps"><i class="fa fa-check"></i><b>5.4</b> Static Maps</a><ul>
+<li class="chapter" data-level="5.4.1" data-path="graphics.html"><a href="graphics.html#map-elements"><i class="fa fa-check"></i><b>5.4.1</b> Map elements</a></li>
+</ul></li>
+<li class="chapter" data-level="5.5" data-path="graphics.html"><a href="graphics.html#animated-maps"><i class="fa fa-check"></i><b>5.5</b> Animated maps</a></li>
+<li class="chapter" data-level="5.6" data-path="graphics.html"><a href="graphics.html#interactive-maps"><i class="fa fa-check"></i><b>5.6</b> Interactive maps</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="final-words.html"><a href="final-words.html"><i class="fa fa-check"></i><b>6</b> Final Words</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A glimpse of GIS and Remote Sensing with R</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="graphics" class="section level1">
+<h1><span class="header-section-number">Chapter 5</span> Making Maps</h1>
+<div id="introduction-1" class="section level2">
+<h2><span class="header-section-number">5.1</span> Introduction</h2>
+<p>Now that you understand vector and raster data model in spatial context, you need to communicate your understanding to others. A satisfying and important aspect of geographic research is communicating the results. To help others quickly build up a good mental model of the spatial data, you will need to invest considerable effort in making your maps as self-explanatory as possible. In this chapter, you’ll learn some of the tools that <strong>ggplot2</strong> provides to make elegand maps and graphics <span class="citation">(Wickham <a href="#ref-ggplot">2016</a>)</span>.</p>
+<p>R has several systems for making graphs, but <strong>ggplot2</strong> is one of the most elegant and most versatile. <strong>ggplot2</strong> implements the <em>grammar of graphics</em>, a coherent system for describing and building graphs. The chapter also introduce you to some extended functionalities from <strong>sf</strong> <span class="citation">(Pebesma <a href="#ref-sf">2018</a>)</span>, <strong>cowplot</strong> <span class="citation">(Wilke <a href="#ref-cowplot">2019</a>)</span>, <strong>ggsn</strong> <span class="citation">(Santos Baquero <a href="#ref-ggsn">2019</a>)</span>, <strong>ggsci</strong> <span class="citation">(Xiao <a href="#ref-ggsci">2018</a>)</span>, <strong>metR</strong> <span class="citation">(Campitelli <a href="#ref-metr">2019</a>)</span>, <strong>ggrepel</strong> <span class="citation">(Slowikowski <a href="#ref-ggrepel">2018</a>)</span>, <strong>gganimate</strong> <span class="citation">(Pedersen and Robinson <a href="#ref-gganimate">2019</a>)</span> and <strong>egg</strong> <span class="citation">(Auguie <a href="#ref-egg">2018</a>)</span> packages. Therefore, this chapter focuses on the tools you need to create good graphics. Rather than loading those extensions here, we’ll refer to their functions explicitly, using the <code>::</code> notation. This will help make it clear which functions are built into <strong>ggplot2</strong>, and which come from other packages. Ensure you have these packages in your machine, otherwise install them with <code>install.packages()</code> if you don’t already have them.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(tidyverse)</code></pre>
+<p>Let us make a map showing contour off–Kimbiji located between longitude 38.5°E and 40.1°E and latitude 7.2°S and `r LatLabel(-6.0). We need to create map of figure <a href="graphics.html#fig:fig50">5.1</a>, which was created with <strong>ggplot2</strong>. But, we will go step by step until we arrive to to an elegant map like figure <a href="graphics.html#fig:fig50">5.1</a>.</p>
+<div class="figure"><span id="fig:fig50"></span>
+<img src="spatil_r_files/figure-html/fig50-1.png" alt="Map of Off-Kimbiji showing contour lines. The grey lines are contour at 50 m interval and the black line are contoured at 200 m intervals" width="672" />
+<p class="caption">
+Figure 5.1: Map of Off-Kimbiji showing contour lines. The grey lines are contour at 50 m interval and the black line are contoured at 200 m intervals
+</p>
+</div>
+<div id="the-bathmetry-data" class="section level3">
+<h3><span class="header-section-number">5.1.1</span> The bathmetry data</h3>
+<p><strong>ggplot2</strong> works with data that are tidy—data frame arranged in such way that observations are in rows and variables are in columns and each value must have its own cell. But, the bathmetry data is from ETOPO1 and came as <code>.asc</code>. We first read the file with the <code>raster::raster()</code> function.<code>Once the raster is in the worksapce, we use the</code>raster::as.data.frame(xy = TRUE)<code>and supply the</code>xy = TRUE` argument to convert raster object to data frame. We then tidy the data frame with rename() and mutate() and filter() function</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co">## read the ascii file</span>
+tz.bath =<span class="st"> </span>raster<span class="op">::</span><span class="kw">raster</span>(<span class="st">&quot;e:/GIS/ROADMAP/Etopo 1/Tanzania_etopo1/tanz1_-3432.asc&quot;</span>)
+
+<span class="co">## convert raster to data frame</span>
+tz.bath.df =<span class="st"> </span>tz.bath <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>raster<span class="op">::</span><span class="kw">as.data.frame</span>(<span class="dt">xy =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">as_tibble</span>()
+
+<span class="co">## rename the variable</span>
+tz.bath.df =<span class="st"> </span>tz.bath.df <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">rename</span>(<span class="dt">lon =</span> x, <span class="dt">lat =</span> y, <span class="dt">depth =</span> <span class="dv">3</span>)<span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">depth =</span> <span class="kw">as.integer</span>(depth))
+
+<span class="co">## chop the area of interest </span>
+off.kimbiji =<span class="st"> </span>tz.bath.df <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(lon <span class="op">&gt;</span><span class="st"> </span><span class="fl">38.5</span> <span class="op">&amp;</span><span class="st"> </span>lon <span class="op">&lt;</span><span class="st"> </span><span class="dv">40</span> <span class="op">&amp;</span><span class="st"> </span>
+<span class="st">           </span>lat <span class="op">&gt;</span><span class="st"> </span><span class="fl">-7.2</span> <span class="op">&amp;</span><span class="st"> </span>lat <span class="op">&lt;</span><span class="st"> </span><span class="op">-</span><span class="st"> </span><span class="dv">6</span> <span class="op">&amp;</span><span class="st"> </span>
+<span class="st">           </span>depth <span class="op">&gt;</span><span class="st"> </span><span class="dv">-1200</span><span class="op">&amp;</span><span class="st"> </span>depth <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>  )</code></pre>
+<p>The bathmetry file now contain three variables, the <code>lon</code>, <code>lat</code> and <code>depth</code> (Table <a href="graphics.html#tab:tab51">5.1</a>)</p>
+<pre class="sourceCode r"><code class="sourceCode r">off.kimbiji <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">sample_n</span>(<span class="dv">5</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(<span class="dt">col.names =</span> <span class="kw">c</span>(<span class="st">&quot;Longitude&quot;</span>, <span class="st">&quot;Latitude&quot;</span>, <span class="st">&quot;Depth (meters)&quot;</span>), <span class="dt">digits =</span> <span class="dv">3</span>,
+               <span class="dt">caption =</span> <span class="st">&quot;The rectangular data frame consist of bathmetry of Kimbiji&quot;</span>)<span class="op">%&gt;%</span>
+<span class="st">  </span>kableExtra<span class="op">::</span><span class="kw">column_spec</span>(<span class="dt">column =</span> <span class="dv">3</span>, <span class="dt">width =</span> <span class="st">&quot;3cm&quot;</span>)</code></pre>
+<table>
+<caption>
+<span id="tab:tab51">Table 5.1: </span>The rectangular data frame consist of bathmetry of Kimbiji
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+Longitude
+</th>
+<th style="text-align:right;">
+Latitude
+</th>
+<th style="text-align:right;">
+Depth (meters)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+39.617
+</td>
+<td style="text-align:right;">
+-6.283
+</td>
+<td style="text-align:right;width: 3cm; ">
+-186
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+39.333
+</td>
+<td style="text-align:right;">
+-6.367
+</td>
+<td style="text-align:right;width: 3cm; ">
+-1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+39.667
+</td>
+<td style="text-align:right;">
+-6.450
+</td>
+<td style="text-align:right;width: 3cm; ">
+-486
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+39.183
+</td>
+<td style="text-align:right;">
+-6.133
+</td>
+<td style="text-align:right;width: 3cm; ">
+-1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+38.800
+</td>
+<td style="text-align:right;">
+-6.083
+</td>
+<td style="text-align:right;width: 3cm; ">
+-2
+</td>
+</tr>
+</tbody>
+</table>
+<p>We also need basemap—country boundary layer. We use the st_read() function from <strong>sf</strong> package to read the shapefile boundary layer. Since the layer is for Africa, we use the st_crop() function to chop the area of interest. this is important as it reduce processing time</p>
+<pre class="sourceCode r"><code class="sourceCode r">africa =<span class="st"> </span><span class="kw">st_read</span>(<span class="st">&quot;e:/GIS/Tanzania spatial data Bank/EAF14 Tanzania spatial datasets/africa/Spatial/AdmInfr/afcntry.shp&quot;</span>)</code></pre>
+<pre><code>## Reading layer `afcntry&#39; from data source `e:\GIS\Tanzania spatial data Bank\EAF14 Tanzania spatial datasets\africa\Spatial\AdmInfr\afcntry.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 59 features and 7 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: -25.35875 ymin: -34.83983 xmax: 57.80085 ymax: 37.34962
+## epsg (SRID):    4326
+## proj4string:    +proj=longlat +datum=WGS84 +no_defs</code></pre>
+<pre class="sourceCode r"><code class="sourceCode r">kimbiji =<span class="st"> </span>africa <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">st_crop</span>(<span class="dt">xmin =</span> <span class="fl">38.0</span>, <span class="dt">xmax =</span> <span class="fl">40.5</span>, <span class="dt">ymin =</span> <span class="dv">-8</span>, <span class="dt">ymax =</span> <span class="fl">-5.5</span>)</code></pre>
+<pre><code>## although coordinates are longitude/latitude, st_intersection assumes that they are planar</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+</div>
+</div>
+<div id="creating-a-ggplot" class="section level2">
+<h2><span class="header-section-number">5.2</span> Creating a ggplot</h2>
+<p>To plot the contour map, run this code to put lon on the x–axis and lat on the y–axis</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))</code></pre>
+<div class="figure"><span id="fig:fig51"></span>
+<img src="spatil_r_files/figure-html/fig51-1.png" alt="Contour lines of coastal water off-Kimbiji" width="672" />
+<p class="caption">
+Figure 5.2: Contour lines of coastal water off-Kimbiji
+</p>
+</div>
+<p>Figure <a href="graphics.html#fig:fig51">5.2</a> shows bathmetry presented as contour lines. With ggplot2, you can begin a plot with the function <code>ggplot()</code>, which create a coordinate system that you can add layers to. The first arguments of <code>ggplot()</code> is the dataset to use in plot. So <code>ggplot(data = off.kimbiji)</code> creates an empty plot. You complete the graph by adding one or more layers to the <code>ggplot()</code>. The <code>geom_contour()</code> adds a layer of contour lines. <strong>ggplot2</strong> comes with many <em>geom</em> that each add a different type of layer to a plot. Each geom function in <strong>ggplot2</strong> takes a mapping argument, which defines how variable in your dataset are mapped. The <code>mapping</code> argument is always paired with <code>aes()</code>, and the <code>x</code> and <code>y</code> arguments of <code>aes()</code> specify which variable to map on the <code>x</code> and <code>y</code> axes. **ggplot<em>2</em> looks for the mapped variables in the data argument, in this case the off-kimbiji.</p>
+<div id="label" class="section level3">
+<h3><span class="header-section-number">5.2.1</span> Label</h3>
+<p>Graph need good label, we can improve figure <a href="graphics.html#fig:fig51">5.2</a> by adding label on the map with the <code>labs()</code> function.This example adds a title to figure <a href="graphics.html#fig:fig52">5.3</a></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>)</code></pre>
+<div class="figure"><span id="fig:fig52"></span>
+<img src="spatil_r_files/figure-html/fig52-1.png" alt="Contour lines of coastal water off-Kimbiji" width="672" />
+<p class="caption">
+Figure 5.3: Contour lines of coastal water off-Kimbiji
+</p>
+</div>
+<p>The labs() function also allows you to add x and y labels as in figure <a href="graphics.html#fig:fig53">5.4</a></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>)</code></pre>
+<div class="figure"><span id="fig:fig53"></span>
+<img src="spatil_r_files/figure-html/fig53-1.png" alt="Contour lines of coastal water off-Kimbiji" width="672" />
+<p class="caption">
+Figure 5.4: Contour lines of coastal water off-Kimbiji
+</p>
+</div>
+</div>
+<div id="annotations" class="section level3">
+<h3><span class="header-section-number">5.2.2</span> Annotations</h3>
+<p>In addition to <code>labs()</code> function that allows to easy place label on map, <strong>ggplot2</strong> has a <code>geom_text()</code> function, which allows to add textual label on the plots. Similar to <code>geom_point()</code> function that has x and y argument, but the <code>geom_text()</code> has additional argument— <code>label</code>. This function is useful especially if you want to place station name on the map or plot. The function requires the data in form of data frame. Therefore we first create a data frame that contains lon, lat and site using the <code>tibble()</code> function. The chunk below illustrates the use of <code>geom_point()</code> and <code>geom_text()</code> as was used to make figure <a href="graphics.html#fig:fig54">5.5</a></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co">## make data frame of three stations</span>
+stations =<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">lon =</span> <span class="kw">c</span>(<span class="fl">39.5</span>, <span class="fl">39.7</span>, <span class="fl">39.5</span>), 
+                      <span class="dt">lat =</span> <span class="kw">c</span>(<span class="op">-</span><span class="fl">7.1</span>, <span class="fl">-6.75</span>, <span class="fl">-6.25</span>), 
+                      <span class="dt">site =</span> <span class="kw">paste</span>(<span class="st">&quot;st&quot;</span>,<span class="dv">101</span><span class="op">:</span><span class="dv">103</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>))
+
+<span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat))<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">label =</span> site))</code></pre>
+<div class="figure"><span id="fig:fig54"></span>
+<img src="spatil_r_files/figure-html/fig54-1.png" alt="Contour lines of coastal water off-Kimbiji" width="672" />
+<p class="caption">
+Figure 5.5: Contour lines of coastal water off-Kimbiji
+</p>
+</div>
+<p>Although the <code>geom_text()</code> does the right thing of placing the textual label on plot or maps, it requires some adjustment to make the label on the right position and not on top of a point and <strong>ggplot2</strong> provides those tools. Alternatively, you can use an extended <code>ggrepel::geom_text_repel()</code> function from <strong>ggrepel</strong> package <span class="citation">(Slowikowski <a href="#ref-ggrepel">2018</a>)</span>. geom_text_repel()` function place the label in the right position and requires no addition tweeking as the label in figure <a href="graphics.html#fig:fig55">5.6</a>.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat))<span class="op">+</span>
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_text_repel</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">label =</span> site))</code></pre>
+<div class="figure"><span id="fig:fig55"></span>
+<img src="spatil_r_files/figure-html/fig55-1.png" alt="Contour lines of coastal water off-Kimbiji" width="672" />
+<p class="caption">
+Figure 5.6: Contour lines of coastal water off-Kimbiji
+</p>
+</div>
+<p>Unfortunate, neither <code>geom_text()</code> nor <code>ggrepel::geom_text_repel()</code> work with label that are not in the data frame. In that situation, you can use the <code>annoation()</code> function that does the job. The code below was used to make figure <a href="graphics.html#fig:fig56">5.7</a></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat))<span class="op">+</span>
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_text_repel</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">label =</span> site))<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.6</span>, <span class="dt">y =</span> <span class="fl">-6.65</span>, <span class="dt">label =</span> <span class="st">&quot;INDIAN OCEAN&quot;</span>)</code></pre>
+<div class="figure"><span id="fig:fig56"></span>
+<img src="spatil_r_files/figure-html/fig56-1.png" alt="Contour lines of coastal water off-Kimbiji" width="672" />
+<p class="caption">
+Figure 5.7: Contour lines of coastal water off-Kimbiji
+</p>
+</div>
+</div>
+<div id="scales" class="section level3">
+<h3><span class="header-section-number">5.2.3</span> Scales</h3>
+<p>The other useful functions for making plot that help communicate clearly are scales. Although <strong>ggplot2</strong> does the scaling for you, but sometimes you may need to adjust the mapping from the data values to make a plot or map more appealing (figure <a href="graphics.html#fig:fig57">5.8</a> ).</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat))<span class="op">+</span>
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_text_repel</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">label =</span> site)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.6</span>, <span class="dt">y =</span> <span class="fl">-6.65</span>, <span class="dt">label =</span> <span class="st">&quot;INDIAN OCEAN&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_continuous</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>() </code></pre>
+<div class="figure"><span id="fig:fig57"></span>
+<img src="spatil_r_files/figure-html/fig57-1.png" alt="Contour lines of coastal water off-Kimbiji. adding scales automatic" width="672" />
+<p class="caption">
+Figure 5.8: Contour lines of coastal water off-Kimbiji. adding scales automatic
+</p>
+</div>
+<p>You can adjust the these scales to your preference as in figure <a href="graphics.html#fig:fig58">5.9</a>. Most scales have <code>breaks</code> and <code>labels</code> as primary arguments.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat))<span class="op">+</span>
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_text_repel</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">label =</span> site)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.6</span>, <span class="dt">y =</span> <span class="fl">-6.65</span>, <span class="dt">label =</span> <span class="st">&quot;INDIAN OCEAN&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="fl">39.35</span>,<span class="fl">39.95</span>, <span class="dt">length.out =</span> <span class="dv">4</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="fl">7.15</span>, <span class="fl">-6.15</span>, <span class="dt">length.out =</span> <span class="dv">4</span>), 
+                     <span class="dt">labels =</span> <span class="kw">c</span>(<span class="op">-</span><span class="fl">7.15</span>, <span class="fl">-6.81</span>, <span class="fl">-6.48</span>, <span class="fl">-6.15</span>)) </code></pre>
+<div class="figure"><span id="fig:fig58"></span>
+<img src="spatil_r_files/figure-html/fig58-1.png" alt="Contour lines of coastal water off-Kimbiji. Adjust scales automatic" width="672" />
+<p class="caption">
+Figure 5.9: Contour lines of coastal water off-Kimbiji. Adjust scales automatic
+</p>
+</div>
+<p>For inset maps scales are often supressed. This is easily done in the scale by assigning <code>labels = NULL</code>. The chunk block below demonstrate the axis label suppresion that was used to make figure <a href="graphics.html#fig:fig59">5.10</a></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat))<span class="op">+</span>
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_text_repel</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">label =</span> site)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.6</span>, <span class="dt">y =</span> <span class="fl">-6.65</span>, <span class="dt">label =</span> <span class="st">&quot;INDIAN OCEAN&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="fl">39.35</span>,<span class="fl">39.95</span>, <span class="dt">length.out =</span> <span class="dv">4</span>), 
+                     <span class="dt">labels =</span> <span class="ot">NULL</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="fl">7.15</span>, <span class="fl">-6.15</span>, <span class="dt">length.out =</span> <span class="dv">4</span>), 
+                     <span class="dt">labels =</span> <span class="ot">NULL</span>) </code></pre>
+<div class="figure"><span id="fig:fig59"></span>
+<img src="spatil_r_files/figure-html/fig59-1.png" alt="Contour lines of coastal water off-Kimbiji. Adjust scales and supress the labels" width="672" />
+<p class="caption">
+Figure 5.10: Contour lines of coastal water off-Kimbiji. Adjust scales and supress the labels
+</p>
+</div>
+<p>###Themes
+Themes in ggplot2 control the non-data parts of the plot. There quiet number of themes in ggplot2 and extended ones from <strong>ggthemes</strong> package <span class="citation">(Arnold <a href="#ref-ggthemes">2019</a>)</span>. <code>themes</code> are widely and can be used to control legend position with <code>legend.position</code> arguments. They also control the display. For more information about the themes I recommend you taking time to read <a href="https://r4ds.had.co.nz/graphics-for-communication.html">chapter 28 of the book titled R for data science</a> written by Hadley Wickham.</p>
+</div>
+<div id="zooming" class="section level3">
+<h3><span class="header-section-number">5.2.4</span> Zooming</h3>
+<p>Although you may have the region extent of your data, but often times you may wish to adjust the plotted area to your interest. If you want to achieve an equal dize of x- and y-axis, then add the <code>coord_equal()</code> function as layer on the <code>ggplot()</code>. The code in the chunk below was used to make figure <a href="graphics.html#fig:fig510">5.11</a></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat))<span class="op">+</span>
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_text_repel</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">label =</span> site)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.6</span>, <span class="dt">y =</span> <span class="fl">-6.65</span>, <span class="dt">label =</span> <span class="st">&quot;INDIAN OCEAN&quot;</span>)<span class="op">+</span>
+<span class="st"> </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="fl">39.35</span>,<span class="fl">39.95</span>, <span class="dt">length.out =</span> <span class="dv">4</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="fl">7.15</span>, <span class="fl">-6.15</span>, <span class="dt">length.out =</span> <span class="dv">4</span>), 
+                     <span class="dt">labels =</span> <span class="kw">c</span>(<span class="op">-</span><span class="fl">7.15</span>, <span class="fl">-6.81</span>, <span class="fl">-6.48</span>, <span class="fl">-6.15</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_equal</span>()</code></pre>
+<div class="figure"><span id="fig:fig510"></span>
+<img src="spatil_r_files/figure-html/fig510-1.png" alt="Contour lines of coastal water off-Kimbiji. Equal zooming" width="672" />
+<p class="caption">
+Figure 5.11: Contour lines of coastal water off-Kimbiji. Equal zooming
+</p>
+</div>
+<p>However, close look of figure <a href="graphics.html#fig:fig59">5.10</a> clearly show that the contour lines do not cross the plot margin. This requires zooming further inside of the ploting area. The function <code>coord_cartesion()</code> can adjust the zooming. This function allows you to set the limits of x-axis with <code>xlim</code> and y-axis with <code>ylim</code> arguments. Figure <a href="graphics.html#fig:fig511">5.12</a> was generated using the chunk below, which control the limits of the axis.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> off.kimbiji) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_contour</span>(<span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z =</span> depth))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Contour lines off Kimbiji&quot;</span>, <span class="dt">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="dt">y =</span> <span class="st">&quot;Latitude&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat))<span class="op">+</span>
+<span class="st">  </span>ggrepel<span class="op">::</span><span class="kw">geom_text_repel</span>(<span class="dt">data =</span> stations, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">label =</span> site)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.6</span>, <span class="dt">y =</span> <span class="fl">-6.65</span>, <span class="dt">label =</span> <span class="st">&quot;INDIAN OCEAN&quot;</span>)<span class="op">+</span>
+<span class="st"> </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="fl">39.35</span>,<span class="fl">39.95</span>, <span class="dt">length.out =</span> <span class="dv">4</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="fl">7.15</span>, <span class="fl">-6.15</span>, <span class="dt">length.out =</span> <span class="dv">4</span>), 
+                     <span class="dt">labels =</span> <span class="kw">c</span>(<span class="op">-</span><span class="fl">7.15</span>, <span class="fl">-6.81</span>, <span class="fl">-6.48</span>, <span class="fl">-6.15</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="fl">39.34</span>, <span class="fl">39.95</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="fl">7.15</span>, <span class="fl">-6.15</span>))</code></pre>
+<div class="figure"><span id="fig:fig511"></span>
+<img src="spatil_r_files/figure-html/fig511-1.png" alt="Contour lines of coastal water off-Kimbiji. Specify zooming" width="672" />
+<p class="caption">
+Figure 5.12: Contour lines of coastal water off-Kimbiji. Specify zooming
+</p>
+</div>
+<p>Now after the abbove illustration that teach you the key functions <strong>ggplot2</strong> offers for making elegant plots and maps, you can use the following code chunk to make figure <a href="graphics.html#fig:fig50">5.1</a>. I will explain each line in the chunk. As before, you start plotting with <strong>ggplot2</strong> with the <code>ggplot()</code> function. The second line of gode add a simple feature with a <code>geom_sf()</code> function from <strong>sf</strong> package. When mapping with <code>geom_sf()</code> function in <strong>ggplot2</strong> package, you are advised to leave the <code>ggplot()</code> function empty. This will allow the geom_sf() to label the axes with the appropriate geographical labelling for longitude and latitude. Note however, I have instructed the <code>geom_sf()</code> to fill the boundary layer with grey of 90 shade and the stroke with black coloou.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-51-1.png" width="672" /></p>
+<p>note that <strong>ggplot2</strong> plot the map with default aesthetic settings. The plot background is filled with gray color and without stroke but the grids are white colored. The third line add the contour lines spaced at 50 meter intervals. Instead of using <code>geom_contour()</code> from ggplot2, the <code>geom_contour2()</code> from <strong>metR</strong> package was used. They both serve the same task.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-52-1.png" width="672" /></p>
+<p>Like the third line, the fourth line add contour lines, but instead of spacing them into meters, these are spaced at 200 meters interval and are black in color.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">200</span>)</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-53-1.png" width="672" /></p>
+<p>The fifth line add the label on contour spaced at 200 meter interval with <code>geom_text_contour()</code> function from <strong>metR</strong> package. Here is where you will find the useful of package like <strong>metR</strong> that extends the <strong>ggplot2</strong>, for which the current version (2.3.1.1) is unable.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">200</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_text_contour</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), 
+               <span class="dt">binwidth =</span> <span class="dv">200</span>, <span class="dt">rotate =</span> <span class="ot">FALSE</span>)</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-54-1.png" width="672" /></p>
+<p>The sixth line zoom the map to only the geographical extent we are interested with using the <code>coord_sf()</code> function from <strong>sf</strong> package. We could also use the <code>coord_cartesin()</code> to limit the area.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">200</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_text_contour</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), 
+               <span class="dt">binwidth =</span> <span class="dv">200</span>, <span class="dt">rotate =</span> <span class="ot">FALSE</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_sf</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">7</span>, <span class="fl">-6.3</span>))</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-55-1.png" width="672" /></p>
+<p>We got a glimpse of the map now, let us use theme to make some changes. The background was set to white with <code>panel.background = element_rect(fill = "white")</code>, and removed grids with <code>panel.grid = element_line(colour = NA)</code> and change the font size of the axis label to 11 points with <code>axis.text = element_text(size = 11)</code>. The <code>theme_bw()</code> just set the border of the plot to black with solid line.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">200</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_text_contour</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), 
+               <span class="dt">binwidth =</span> <span class="dv">200</span>, <span class="dt">rotate =</span> <span class="ot">FALSE</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_sf</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">7</span>, <span class="fl">-6.3</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>),
+        <span class="dt">panel.grid =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="ot">NA</span>),
+        <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">11</span>))</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-56-1.png" width="672" /></p>
+<p>By increasing the font size of axis textual label to 11, the axes are cluttered. adding the scale can improve the labelling. <code>scale_x_continuous(breaks = seq(39.2, 39.8, .2))</code> in line 9 force ggplot2 to label the x–axis four letter that are spaced with 0.2 latitude and <code>scale_y_continuous(breaks = seq(-6.95, -6.35, length.out = 4))</code> in line 10 label four digits of longitude.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">200</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_text_contour</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), 
+               <span class="dt">binwidth =</span> <span class="dv">200</span>, <span class="dt">rotate =</span> <span class="ot">FALSE</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_sf</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">7</span>, <span class="fl">-6.3</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>),
+        <span class="dt">panel.grid =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="ot">NA</span>),
+        <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">11</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>, <span class="fl">.2</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="fl">6.95</span>, <span class="fl">-6.35</span>, <span class="dt">length.out =</span> <span class="dv">4</span>))</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-57-1.png" width="672" /></p>
+<p>Because the axes are abbreviated with longitude and latitude symbol, line 11 in the code remove the axes title label. Line 12 to 14 add textual label on the map with the <code>annotate()</code> function.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">200</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_text_contour</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), 
+               <span class="dt">binwidth =</span> <span class="dv">200</span>, <span class="dt">rotate =</span> <span class="ot">FALSE</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_sf</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">7</span>, <span class="fl">-6.3</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>),
+        <span class="dt">panel.grid =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="ot">NA</span>),
+        <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">11</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>, <span class="fl">.2</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="fl">6.95</span>, <span class="fl">-6.35</span>, <span class="dt">length.out =</span> <span class="dv">4</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="ot">NULL</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.28</span>, <span class="dt">y =</span> <span class="fl">-6.48</span>, <span class="dt">label =</span> <span class="st">&quot;Zanzibar </span><span class="ch">\n</span><span class="st">Channel&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.5</span>, <span class="dt">y =</span> <span class="fl">-6.37</span>, <span class="dt">label =</span> <span class="st">&quot;Unguja </span><span class="ch">\n</span><span class="st">Island&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.3</span>, <span class="dt">y =</span> <span class="fl">-6.91</span>, <span class="dt">label =</span> <span class="st">&quot;Dar es Salaam&quot;</span>)</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-58-1.png" width="672" /></p>
+<p>The last line of our code add the legend on the map using the <code>scalebar()</code> function from <strong>ggsn</strong> package <span class="citation">(Santos Baquero <a href="#ref-ggsn">2019</a>)</span>. In a nutshell, making this map using ggplot2 and ancillary extensions used fiften line codes and hundred of arguments.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">200</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_text_contour</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), 
+               <span class="dt">binwidth =</span> <span class="dv">200</span>, <span class="dt">rotate =</span> <span class="ot">FALSE</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_sf</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">7</span>, <span class="fl">-6.3</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>),
+        <span class="dt">panel.grid =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="ot">NA</span>),
+        <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">11</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>, <span class="fl">.2</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="fl">6.95</span>, <span class="fl">-6.35</span>, <span class="dt">length.out =</span> <span class="dv">4</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="ot">NULL</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.28</span>, <span class="dt">y =</span> <span class="fl">-6.48</span>, <span class="dt">label =</span> <span class="st">&quot;Zanzibar </span><span class="ch">\n</span><span class="st">Channel&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.5</span>, <span class="dt">y =</span> <span class="fl">-6.37</span>, <span class="dt">label =</span> <span class="st">&quot;Unguja </span><span class="ch">\n</span><span class="st">Island&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.3</span>, <span class="dt">y =</span> <span class="fl">-6.91</span>, <span class="dt">label =</span> <span class="st">&quot;Dar es Salaam&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>ggsn<span class="op">::</span><span class="kw">scalebar</span>(<span class="dt">location =</span> <span class="st">&quot;bottomleft&quot;</span>, <span class="dt">x.min =</span> <span class="fl">39.2</span>, <span class="dt">x.max =</span> <span class="fl">39.8</span>, 
+                 <span class="dt">y.min =</span> <span class="fl">-6.98</span>, <span class="dt">y.max =</span> <span class="fl">-6.35</span>, <span class="dt">dist =</span> <span class="dv">15</span>, <span class="dt">dist_unit =</span> <span class="st">&quot;km&quot;</span>, 
+                 <span class="dt">transform =</span> <span class="ot">TRUE</span>, <span class="dt">model =</span> <span class="st">&quot;WGS84&quot;</span>, <span class="dt">st.dist =</span> <span class="fl">0.03</span>, <span class="dt">st.size =</span> <span class="dv">4</span>,
+                 <span class="dt">height =</span> <span class="fl">0.03</span>)</code></pre>
+<p><img src="spatil_r_files/figure-html/unnamed-chunk-59-1.png" width="672" /></p>
+</div>
+</div>
+<div id="inset-maps" class="section level2">
+<h2><span class="header-section-number">5.3</span> Inset maps</h2>
+<p>An inset map is a smaller map rendered within or next to the main map. It could serve many different purposes, including showing the relative position of the study area in regional area. In figure <a href="graphics.html#fig:fig512">5.13</a> is the map showing the contour interval off-kimbiji, Tanzania. The inset map show the area of Kimbiji in the Western Indian Ocean Region. The chunk below was used to create figure <a href="graphics.html#fig:fig512">5.13</a>. In a nutshell, we assign the study area map as <code>main.map</code> and the regional map as <code>inset.map</code> and then we used function from the <strong>cowplot</strong> package to combine the two maps.</p>
+<pre class="sourceCode r"><code class="sourceCode r">main.map =<span class="st"> </span><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> kimbiji, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;grey40&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">50</span>, <span class="dt">col =</span> <span class="st">&quot;grey&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_contour2</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), <span class="dt">binwidth =</span> <span class="dv">200</span>)<span class="op">+</span>
+<span class="st">  </span>metR<span class="op">::</span><span class="kw">geom_text_contour</span>(<span class="dt">data =</span> off.kimbiji, 
+               <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat, <span class="dt">z=</span>depth), 
+               <span class="dt">binwidth =</span> <span class="dv">200</span>, <span class="dt">rotate =</span> <span class="ot">FALSE</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_sf</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">7</span>, <span class="fl">-6.3</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">panel.background =</span> <span class="kw">element_rect</span>(<span class="dt">fill =</span> <span class="st">&quot;white&quot;</span>),
+        <span class="dt">panel.grid =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="ot">NA</span>),
+        <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">11</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="fl">39.2</span>, <span class="fl">39.8</span>, <span class="fl">.2</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">scale_y_continuous</span>(<span class="dt">breaks =</span> <span class="kw">seq</span>(<span class="op">-</span><span class="fl">6.95</span>, <span class="fl">-6.35</span>, <span class="dt">length.out =</span> <span class="dv">4</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="ot">NULL</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.28</span>, <span class="dt">y =</span> <span class="fl">-6.48</span>, <span class="dt">label =</span> <span class="st">&quot;Zanzibar </span><span class="ch">\n</span><span class="st">Channel&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.5</span>, <span class="dt">y =</span> <span class="fl">-6.37</span>, <span class="dt">label =</span> <span class="st">&quot;Unguja </span><span class="ch">\n</span><span class="st">Island&quot;</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">annotate</span>(<span class="dt">geom =</span> <span class="st">&quot;text&quot;</span>, <span class="dt">x =</span> <span class="fl">39.3</span>, <span class="dt">y =</span> <span class="fl">-6.91</span>, <span class="dt">label =</span> <span class="st">&quot;Dar es Salaam&quot;</span>)<span class="op">+</span>
+<span class="st">  </span>ggsn<span class="op">::</span><span class="kw">scalebar</span>(<span class="dt">location =</span> <span class="st">&quot;bottomleft&quot;</span>, <span class="dt">x.min =</span> <span class="fl">39.2</span>, <span class="dt">x.max =</span> <span class="fl">39.8</span>, 
+                 <span class="dt">y.min =</span> <span class="fl">-6.98</span>, <span class="dt">y.max =</span> <span class="fl">-6.35</span>, <span class="dt">dist =</span> <span class="dv">15</span>, <span class="dt">dist_unit =</span> <span class="st">&quot;km&quot;</span>, 
+                 <span class="dt">transform =</span> <span class="ot">TRUE</span>, <span class="dt">model =</span> <span class="st">&quot;WGS84&quot;</span>, <span class="dt">st.dist =</span> <span class="fl">0.03</span>, <span class="dt">st.size =</span> <span class="dv">4</span>,
+                 <span class="dt">height =</span> <span class="fl">0.03</span>)
+
+world =<span class="st"> </span>spData<span class="op">::</span>world
+aoi =<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">lon =</span> <span class="kw">c</span>(<span class="fl">38.5</span>, <span class="dv">40</span>, <span class="dv">40</span>, <span class="fl">38.5</span>, <span class="fl">38.5</span>), 
+                 <span class="dt">lat =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">8</span>, <span class="dv">-8</span>, <span class="dv">-6</span>, <span class="dv">-6</span>, <span class="dv">-8</span>))
+
+inset.map =<span class="st"> </span><span class="kw">ggplot</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_sf</span>(<span class="dt">data =</span> world, <span class="dt">fill =</span> <span class="st">&quot;grey90&quot;</span>, <span class="dt">col =</span> <span class="dv">1</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_sf</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">37</span>, <span class="dv">45</span>), <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">12</span>,<span class="op">-</span><span class="dv">1</span>))<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_path</span>(<span class="dt">data =</span> aoi, <span class="kw">aes</span>(<span class="dt">x =</span> lon, <span class="dt">y =</span> lat), <span class="dt">size =</span> <span class="fl">1.2</span>)<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_bw</span>()<span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">plot.background =</span> <span class="kw">element_blank</span>(),
+        <span class="dt">axis.text =</span> <span class="kw">element_blank</span>(),
+        <span class="dt">axis.ticks =</span> <span class="kw">element_blank</span>(), <span class="dt">panel.grid =</span> <span class="kw">element_line</span>(<span class="dt">colour =</span> <span class="st">&quot;white&quot;</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="ot">NULL</span>)
+
+cowplot<span class="op">::</span><span class="kw">ggdraw</span>()<span class="op">+</span>
+<span class="st">  </span>cowplot<span class="op">::</span><span class="kw">draw_plot</span>(<span class="dt">plot =</span> main.map, <span class="dt">x =</span> <span class="dv">0</span>, <span class="dt">y =</span> <span class="dv">0</span>, <span class="dt">width =</span> <span class="dv">1</span>, <span class="dt">height =</span> <span class="dv">1</span>, <span class="dt">scale =</span> <span class="dv">1</span>)<span class="op">+</span>
+<span class="st">  </span>cowplot<span class="op">::</span><span class="kw">draw_plot</span>(<span class="dt">plot =</span> inset.map, <span class="dt">x =</span> <span class="fl">.558</span>, <span class="dt">y =</span> <span class="fl">.05</span>, <span class="dt">width =</span> <span class="fl">.3</span>,<span class="dt">height =</span> <span class="fl">.3</span>)</code></pre>
+<div class="figure"><span id="fig:fig512"></span>
+<img src="spatil_r_files/figure-html/fig512-1.png" alt="The main map with the inset map showing the positon of the study areas in the region" width="672" />
+<p class="caption">
+Figure 5.13: The main map with the inset map showing the positon of the study areas in the region
+</p>
+</div>
+</div>
+<div id="static-maps" class="section level2">
+<h2><span class="header-section-number">5.4</span> Static Maps</h2>
+<p>Static maps are the most common type of visual output from spatial objects. Fixed images for printed outputs, common formats for static maps include .<code>png</code> and <code>.pd</code>f, for raster and vector outputs, respectively. Initially static maps were the only type of map that R could produce. Things have advanced greatly since <code>sp</code> was released (see <span class="citation">Bivand, Pebesma, and Gomez-Rubio (<a href="#ref-sp">2013</a>)</span>). Many new techniques for map making have been developed since then. However, a decade later static plotting was still the emphasis of geographic data visualisation in R (Cheshire and Lovelace 2015).</p>
+<p>Despite the innovation of interactive mapping in R, static maps are still the foundation of mapping in R. The base <code>plot()</code> function is often the fastest way to create static maps from vector and raster spatial objects. Sometimes simplicity and speed are priorities, especially during the development phase of a project, and this is where <code>plot()</code> excels. The base R approach is also extensible, with <code>plot()</code> offering dozens of arguments. Another low-level approach is the <strong>grid</strong> package, which provides functions for low-level control of graphical outputs. This section, however, focus on how to make static maps with <strong>ggplot2</strong>, emphasizing the important aesthetic and layout options.</p>
+<div id="map-elements" class="section level3">
+<h3><span class="header-section-number">5.4.1</span> Map elements</h3>
+<p>The good thing to start making maps is with an understanding of the map elements. A static map can be composed of many different map elements. These include <code>main map body</code>, <code>legend</code>, <code>title</code>, <code>scale indicator</code>, <code>orientation indicator</code>, <code>inset map</code> and <code>source</code> or <code>ancillary</code> information.</p>
+<p>The easiest place to start when turning an exploratory graphic into an expository graphic is with good labels. You add labels with the labs() function. This example adds a plot title:</p>
+</div>
+</div>
+<div id="animated-maps" class="section level2">
+<h2><span class="header-section-number">5.5</span> Animated maps</h2>
+</div>
+<div id="interactive-maps" class="section level2">
+<h2><span class="header-section-number">5.6</span> Interactive maps</h2>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-ggplot">
+<p>Wickham, Hadley. 2016. <em>Ggplot2: Elegant Graphics for Data Analysis</em>. Springer-Verlag New York. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.</p>
+</div>
+<div id="ref-sf">
+<p>Pebesma, Edzer. 2018. “Simple Features for R: Standardized Support for Spatial Vector Data.” <em>The R Journal</em>. <a href="https://journal.r-project.org/archive/2018/RJ-2018-009/index.html">https://journal.r-project.org/archive/2018/RJ-2018-009/index.html</a>.</p>
+</div>
+<div id="ref-cowplot">
+<p>Wilke, Claus O. 2019. <em>Cowplot: Streamlined Plot Theme and Plot Annotations for ’Ggplot2’</em>. <a href="https://CRAN.R-project.org/package=cowplot">https://CRAN.R-project.org/package=cowplot</a>.</p>
+</div>
+<div id="ref-ggsn">
+<p>Santos Baquero, Oswaldo. 2019. <em>Ggsn: North Symbols and Scale Bars for Maps Created with ’Ggplot2’ or ’Ggmap’</em>. <a href="https://CRAN.R-project.org/package=ggsn">https://CRAN.R-project.org/package=ggsn</a>.</p>
+</div>
+<div id="ref-ggsci">
+<p>Xiao, Nan. 2018. <em>Ggsci: Scientific Journal and Sci-Fi Themed Color Palettes for ’Ggplot2’</em>. <a href="https://CRAN.R-project.org/package=ggsci">https://CRAN.R-project.org/package=ggsci</a>.</p>
+</div>
+<div id="ref-metr">
+<p>Campitelli, Elio. 2019. <em>MetR: Tools for Easier Analysis of Meteorological Fields</em>. <a href="https://CRAN.R-project.org/package=metR">https://CRAN.R-project.org/package=metR</a>.</p>
+</div>
+<div id="ref-ggrepel">
+<p>Slowikowski, Kamil. 2018. <em>Ggrepel: Automatically Position Non-Overlapping Text Labels with ’Ggplot2’</em>. <a href="https://CRAN.R-project.org/package=ggrepel">https://CRAN.R-project.org/package=ggrepel</a>.</p>
+</div>
+<div id="ref-gganimate">
+<p>Pedersen, Thomas Lin, and David Robinson. 2019. <em>Gganimate: A Grammar of Animated Graphics</em>. <a href="https://CRAN.R-project.org/package=gganimate">https://CRAN.R-project.org/package=gganimate</a>.</p>
+</div>
+<div id="ref-egg">
+<p>Auguie, Baptiste. 2018. <em>Egg: Extensions for ’Ggplot2’: Custom Geom, Plot Alignment, Symmetrised Scale, and Fixed Panel Size</em>. <a href="https://CRAN.R-project.org/package=egg">https://CRAN.R-project.org/package=egg</a>.</p>
+</div>
+<div id="ref-ggthemes">
+<p>Arnold, Jeffrey B. 2019. <em>Ggthemes: Extra Themes, Scales and Geoms for ’Ggplot2’</em>. <a href="https://CRAN.R-project.org/package=ggthemes">https://CRAN.R-project.org/package=ggthemes</a>.</p>
+</div>
+<div id="ref-sp">
+<p>Bivand, Roger S., Edzer Pebesma, and Virgilio Gomez-Rubio. 2013. <em>Applied Spatial Data Analysis with R, Second Edition</em>. Springer, NY. <a href="http://www.asdar-book.org/">http://www.asdar-book.org/</a>.</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="vector.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="final-words.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"google": false,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "google", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"download": ["spatil_r.pdf", "spatil_r.epub", "spatil_r.mobi"],
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:" && /^https?:/.test(src))
+      src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

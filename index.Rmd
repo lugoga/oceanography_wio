@@ -1,0 +1,22 @@
+--- 
+title: "A glimpse of GIS and Remote Sensing with R"
+author: "Masumbuko Semba"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib]
+biblio-style: apalike
+link-citations: yes
+description: "Introdution to geographical information system and remote sensing using an open source and powerful statical tool, R"
+---
+
+# Prerequisites {-}
+
+This book assumes you have some knowledge of `R`. If you’ve never used R before, or need a refresher, start with our Introduction to R for Geospatial Data lesson.This book also assumes you have some knowledge of geospatial data types and common file formats. If you have never worked with geospatial data before, or need a refresher, start with our Introduction to Geospatial Concepts lesson.
+
+# Sources{-}
+
+1. https://geocompr.robinlovelace.net/adv-map.html#inset-maps
+2. https://mgimond.github.io/Spatial/good-map-making-tips.html
+3. https://r4ds.had.co.nz/graphics-for-communication.html
+

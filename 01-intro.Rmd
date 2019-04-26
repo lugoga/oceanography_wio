@@ -1,0 +1,13 @@
+# Introduction to Spatial Analysis {#intro}
+
+
+The goal of this book is to provide an introduction to R for learners working with geospatial data. It is intended as a pre-requisite for the R for Raster and Vector Data  for learners who have no prior experience using R. This book focus on the following topics:
+
++ Working with R in the RStudio GUI
++ Project management and file organization
++ Importing data into R
++ Introduction to R’s core data types and data structures
++ Manipulation of data frames (tabular data) in R
++ Introduction to visualization
++ Writing data to a file.
+

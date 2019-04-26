@@ -1,0 +1,8 @@
+"0","location = read_csv(""kimbiji_kizimkazi_transect.csv"")
+"
+"2","Parsed with column specification:
+cols(
+  lon = [32mcol_double()[39m,
+  lat = [32mcol_double()[39m
+)
+"

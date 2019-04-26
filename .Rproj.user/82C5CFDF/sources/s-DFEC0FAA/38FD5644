@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1555906173601.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "38FD5644",
+    "lastKnownWriteTime" : 1556083668,
+    "last_content_update" : 1556083668735,
+    "path" : "E:/bookdown/spatil_r/09-physicalChemical.Rmd",
+    "project_path" : "09-physicalChemical.Rmd",
+    "properties" : {
+        "cursorPosition" : "289,0",
+        "scrollLine" : "265"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

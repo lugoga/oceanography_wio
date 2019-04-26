@@ -1,0 +1,12 @@
+"0","location.sf %>% st_write(""./location.shp"")"
+"1","Dataset "
+"1","./location.shp"
+"1"," already exists: remove first, use update=TRUE to append,"
+"1","
+"
+"1","delete_layer=TRUE to delete layer, or delete_dsn=TRUE to remove the entire data source before writing."
+"1","
+"
+"2","Error in CPL_write_ogr(obj, dsn, layer, driver, as.character(dataset_options),  : 
+  Dataset already exists.
+"

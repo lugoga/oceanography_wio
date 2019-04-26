@@ -1,0 +1,291 @@
+#Physical and chemical properties of the ocean
+
+```{r}
+require(tidyverse)
+require(sf)
+require(oce)
+```
+
+```{r}
+woa = read_table2("e:/MatlabWorking/WOA/WOA09_meridional_sections_every_10_degrees/WOA09_lon_50.5.jos")
+```
+
+cross section of temperature at longitude 50.5 within the indian ocean. data from WOA
+
+```{r}
+
+  
+  ggplot(data = woa%>%filter(PRES < 1000 & Lat <= 0), 
+         aes(x = Lat, y = PRES)) +
+  metR::geom_contour_fill(aes(z = TEMP), na.fill = T, bins = 120) + 
+  metR::geom_contour2(aes(z = TEMP), binwidth = 4) +
+  metR::geom_text_contour(aes(z = TEMP), binwidth = 4, parse = T, check_overlap = TRUE) +
+  scale_y_reverse(breaks = seq(0, 1000, 150))+
+  scale_x_reverse(breaks = seq(-90,5,15), labels = metR::LatLabel(seq(-90,5,15))) +
+  scale_fill_gradientn(colours = oce::oceColors9A(120))+
+  theme(axis.text = element_text(size = 12))+
+  labs(x = NULL, y = "Depth (m)")
+```
+
+```{r}
+woa.files = dir("e:/MatlabWorking/WOA/WOA09_zonal_sections_every_5_degrees/", full.names = TRUE)
+```
+
+```{r}
+
+woa.list = list()
+for (i in 1:length(woa.files)){
+  
+  woa.list[[i]] = read_table2(woa.files[i])
+  
+}
+
+```
+
+```{r}
+woa.tb = woa.list %>% bind_rows() %>% rename(Lon = Long)
+
+colnames(woa.tb) = tolower(colnames(woa.tb))
+```
+
+```{r}
+ggplot(data = woa.tb %>% filter(pres == 0), aes(x = lon, y = lat)) +
+  geom_point() +
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+    theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  labs(x = NULL, y = NULL)
+```
+
+## Physical
+```{r}
+world = read_sf("e:/GIS/Tanzania spatial data Bank/World/World Countries and continents/Continents.shp")
+
+
+```
+
+### Temperature
+
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = temp), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120), breaks = seq(0,30,4))+
+  theme(legend.position = "bottom", panel.background = element_blank(),
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Temperature(~degree*C)),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+```
+
+## Salinity
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = salt), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,180), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme(panel.background = element_rect(fill = NA, colour = 1),
+       legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = "Salinity",
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+
+
+```
+
+## Chemical
+
+### Dissolved oxygen
+
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = o2), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Dissolved~Oxygen(mlL^{-1})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+```
+
+### Nitrate
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = no3), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Nitrate~concentration(~mgm^{-3})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+
+```
+
+
+### Phosphate
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = po4), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  theme_bw()+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Phosphate~concentration(~mgm^{-3})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+
+```
+
+
+
+### Silica
+```{r}
+
+ggplot() +
+  metR::geom_contour_fill(data = woa.tb %>% filter(pres == 0),
+                          aes(x = lon, y = lat, z = sio3), na.fill = T, bins = 12) +
+  geom_sf(data = world, col = NA, fill = "grey30")+
+  coord_sf(xlim = c(-180,178), ylim = c(-90,85), clip = "on", expand = FALSE)+
+  scale_y_continuous(breaks = seq(-60,60,30), labels = metR::LatLabel(seq(-60,60,30)))+
+  scale_x_continuous(breaks = seq(-135,135,45), labels = metR::LonLabel(seq(-135,135,45)))+
+  scale_fill_gradientn(colours = oce::oce.colors9A(120))+
+  theme_bw()+
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 11, colour = "black"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11))+
+  guides(fill = guide_colorbar(title = expression(Silca~concentration(mgm^{-3})),
+                               title.position = "top", 
+                               title.hjust = 0.5, 
+                               direction = "horizontal",
+                               reverse = FALSE, 
+                               barwidth = unit(14, "cm"),
+                               barheight = unit(.4, "cm")))+
+  labs(x = NULL, y = NULL)
+
+```
+
+cross-section of temperature at longitude `r LonLabel(55.5)` in the Indian Ocean. The diagram show several water masses formed at diffrent latitudes. The data was obtained from WOA09
+
+```{r}
+## cross section of temperature at longitude 45.5 in the indian ocean
+
+woa.tb %>% filter(lon == 55.5 & lat > -55 & lat < 25 & pres < 1000) %>% 
+  ggplot()+
+  metR::geom_contour_fill(aes(x = lat, y = pres, z = temp), na.fill = TRUE)+
+  metR::geom_contour2(aes(x = lat, y = pres, z = temp), na.fill = TRUE)+
+  metR::geom_text_contour(aes(x = lat, y = pres, z = temp), skip = 1, rotate = FALSE, check_overlap = FALSE)+
+  scale_fill_gradientn(colours = oce::oce.colors9B(120)) +
+  scale_y_reverse(breaks = seq(0,1000,200))+
+  scale_x_continuous(position = "top",
+                     breaks = seq(-70,30,10),labels = metR::LatLabel(seq(-70,30,10)))+
+ theme(panel.background = element_rect(fill = NA, colour = 1),
+       panel.border = element_rect(colour = 1, fill = NA),
+       legend.position = "none",
+       axis.text = element_text(size = 11, colour = "black"),
+       legend.text = element_text(size = 10),
+       legend.title = element_text(size = 12))+  
+  labs(x = NULL, y = "Pressure [dba]")+
+  coord_cartesian(xlim = c(-48, 14), ylim = c(0,900), clip = "on", expand = FALSE)
+```
+
+## Bagamoyo ctd
+```{r}
+locations = readxl::read_excel("e:/Data Manipulation/ctd_bagamoyo/Coordinates.xlsx")
+
+# remove empty rows and change to decimal minutes
+locations = locations %>% 
+  filter(!is.na(Long)) %>% 
+  separate(Lat, c("latd", "latmi"), sep = " ") %>%
+  separate(latd, "lat", sep = 2) %>%
+  separate(Long, c("lond", "lonmi"), sep = " ") %>%
+  separate(lond, "lon", sep = 3) %>%
+  mutate(Latitude = -1*(lat %>% as.integer()+latmi %>%as.numeric()/60),
+         Longitude = lon %>% as.integer()+lonmi %>%as.numeric()/60) %>%
+  select(station = 1, lon = Longitude, lat = Latitude)
+
+locations.sf = locations %>% 
+  st_as_sf(coords = c("lon", "lat")) %>% 
+  st_set_crs(4326)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = locations.sf, size = 4) + 
+  coord_sf( xlim = c(38.95, 40), ylim = c(-6.5, -6.35))+
+  ggrepel::geom_text_repel(data = locations, aes(x = lon, y = lat, label = station))
+```
+
